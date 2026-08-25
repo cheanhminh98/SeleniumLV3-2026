@@ -1,5 +1,7 @@
 package com.driver;
 
+import com.data.BrowserType;
+
 public class BaseDriverFactory {
 
     /**

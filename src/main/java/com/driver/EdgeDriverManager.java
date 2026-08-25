@@ -3,18 +3,20 @@ package com.driver;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.edge.EdgeDriver;
+import org.openqa.selenium.edge.EdgeOptions;
 
-public class ChromeDriverProvider extends BaseDriver<ChromeOptions> {
+public class EdgeDriverManager extends BaseDriver<EdgeOptions> {
 
     /**
-     * Creates a Chrome WebDriver.
+     * Creates a Edge WebDriver.
      *
-     * @param options ChromeOptions
+     * @param options EdgeOptions
      * @return Chrome WebDriver
      */
     @Override
-    protected WebDriver createDriver(ChromeOptions options) {
-        return new ChromeDriver(options);
+    protected WebDriver createDriver(EdgeOptions options) {
+        return new EdgeDriver(options);
     }
 
 
@@ -24,12 +26,14 @@ public class ChromeDriverProvider extends BaseDriver<ChromeOptions> {
      * @param config Driver Config
      * @return Chrome options
      */
-    protected ChromeOptions getOptions(DriverConfig config) {
-        ChromeOptions options = new ChromeOptions();
+    protected EdgeOptions getOptions(DriverConfig config) {
+        EdgeOptions options = new EdgeOptions();
         if (config.isHeadless()) {
             options.addArguments("--headless=new");
         }
-        options.addArguments("--incognito");
+        if (config.getArguments() != null) {
+            options.addArguments(config.getArguments());
+        }
         options.addArguments("--disable-extensions");
         options.addArguments("--disable-notifications");
         return options;

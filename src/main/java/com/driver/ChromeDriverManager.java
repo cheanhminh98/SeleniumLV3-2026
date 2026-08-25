@@ -29,6 +29,9 @@ public class ChromeDriverManager extends BaseDriver<ChromeOptions> {
         if (config.isHeadless()) {
             options.addArguments("--headless=new");
         }
+        if (config.getArguments() != null) {
+            options.addArguments(config.getArguments());
+        }
         options.addArguments("--incognito");
         options.addArguments("--disable-extensions");
         options.addArguments("--disable-notifications");
