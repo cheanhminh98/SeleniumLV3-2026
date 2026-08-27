@@ -11,4 +11,12 @@ public enum BrowserType {
 
     private final String browserName;
     private final Class<? extends BaseDriver<?>> baseDriver;
+
+    public static BrowserType getBrowser(String browser) {
+        try {
+            return valueOf(browser.trim().toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Unsupported browser: " + browser, e);
+        }
+    }
 }

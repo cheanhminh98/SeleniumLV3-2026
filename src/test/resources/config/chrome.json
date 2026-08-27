@@ -1,0 +1,10 @@
+{
+  "browser": "chrome",
+  "headless": false,
+  "remoteURL": "",
+  "baseUrl": "https://google.com",
+  "startMaximized": true,
+  "timeout": 5000,
+  "pageLoadTimeout": 30000,
+  "pollingInterval": 200
+}
