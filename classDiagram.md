@@ -1,176 +1,326 @@
 ```mermaid
 classDiagram
 
-    %% =========================
-    %% DRIVER
-    %% =========================
+%% =========================================================
+%% CONFIG
+%% =========================================================
 
-    namespace driver {
+namespace config {
 
-        class BrowserType {
-            <<enumeration>>
-            CHROME
-            FIREFOX
-            EDGE
-        }
+    class DriverConfig {
+        -BrowserType browser
+        -boolean headless
+        -String remoteURL
+        -String baseUrl
+        -boolean startMaximized
+        -Duration timeout
+        -Duration pageLoadTimeout
+        -Duration pollingInterval
+    }
+}
 
-        class DriverConfig {
-            -BrowserType browserType
-            -boolean headless
 
-            +DriverConfig(BrowserType browserType, boolean headless)
-            +BrowserType getBrowserType()
-            +boolean isHeadless()
-        }
+%% =========================================================
+%% DRIVER
+%% =========================================================
 
-        class DriverFactory~T extends MutableCapabilities~ {
-            <<abstract>>
-            +WebDriver createDriver(DriverConfig config)
-            #WebDriver createWebDriver(DriverConfig config, T options)
-            #WebDriver createRemoteDriver(DriverConfig config, T options)
-            #WebDriver createLocalDriver(T options)
-        }
+namespace driver {
 
-        class ChromeDriverFactory {
-            +WebDriver createDriver(DriverConfig config)
-            +ChromeOptions createOptions(DriverConfig config)
-            +WebDriver createLocalDriver(ChromeOptions options)
-        }
+    class BaseDriver {
+        <<abstract>>
 
-        class DriverManager {
-            #ThreadLocal~WebDriver~ driver
-            #DriverFactory~?~ driverFactory
+        #MutableCapabilities getOptions(DriverConfig config)
+        #WebDriver createDriver(MutableCapabilities options)
 
-            +WebDriver getDriver()
-            +void setDriver(WebDriver webDriver)
-            +WebDriver createDriver(DriverConfig config)
-            +void quitDriver()
-            +void open(String url)
-        }
+        +WebDriver createWebDriver(DriverConfig config)
 
-        class DriverManagerFactory {
-            +DriverManager getDriver(BrowserType browserType)
-        }
+        #WebDriver createRemoteDriver(
+            DriverConfig config,
+            MutableCapabilities options
+        )
     }
 
-    DriverFactory <|-- ChromeDriverFactory
-
-    DriverManager --> DriverFactory : delegates
-    DriverManager --> DriverConfig : uses
-    DriverManager --> WebDriver : manages
-
-    DriverManagerFactory --> BrowserType : uses
-    DriverManagerFactory --> DriverManager : creates
-
-    ChromeDriverFactory --> ChromeOptions : creates
-    ChromeDriverFactory --> WebDriver : creates
-
-
-    %% =========================
-    %% ELEMENT
-    %% =========================
-
-    namespace element {
-
-        class Element {
-            -WebDriver driver
-            -String locator
-            -By byLocator
-            -String dynamicLocator
-
-            +Element(String locator)
-            +Element(By byLocator)
-
-            +WebDriver getDriver()
-            +By getLocator()
-            +WebElement getElement()
-            +List~WebElement~ getElements()
-            +void setValue(Object... args)
-
-            +String getText()
-            +void click()
-            +void check()
-            +void enter(String value)
-            +void hover()
-            +void moveTo()
-
-            +boolean isChecked()
-            +boolean isDisplayed()
-            +boolean isExist()
-            +void waitForVisible()
-        }
+    class BaseDriverFactory {
+        +BaseDriver getDriver(
+            BrowserType browserType
+        )
     }
 
-    Element ..> DriverManager : gets driver
-    Element --> WebDriver
+    class DriverManager {
+        -ThreadLocal~WebDriver~ driver
+
+        +WebDriver getDriver()
+        +void setDriver(WebDriver webDriver)
+        +void quitDriver()
+        +void open(String url)
+    }
+}
 
 
-    %% =========================
-    %% UTILITIES
-    %% =========================
+%% =========================================================
+%% BROWSER
+%% =========================================================
 
-    namespace utilities {
+namespace browser {
 
-        class Assert {
-            +static void assertTrue(boolean condition, String message)
-            +static void assertFalse(boolean condition, String message)
-            +static void assertEquals(Object actual, Object expected, String message)
-        }
+    class BrowserType {
+        <<enumeration>>
+
+        CHROME
+        FIREFOX
+        EDGE
+
+        -Class baseDriver
+
+        +BrowserType(Class baseDriver)
+        +Class getBaseDriver()
+        +BrowserType getBrowser(String browser)
     }
 
+    class ChromeDriverManager {
+        #ChromeOptions getOptions(
+            DriverConfig config
+        )
 
-    %% =========================
-    %% LISTENER
-    %% =========================
-
-    namespace listener {
-
-        class TestListener {
-            +void onTestStart(ITestResult result)
-            +void onTestSuccess(ITestResult result)
-            +void onTestFailure(ITestResult result)
-            +void onTestSkipped(ITestResult result)
-            +void onFinish(ITestContext context)
-        }
+        #WebDriver createDriver(
+            ChromeOptions options
+        )
     }
 
+    class FirefoxDriverManager {
+        #FirefoxOptions getOptions(
+            DriverConfig config
+        )
 
-    %% =========================
-    %% REPORT
-    %% =========================
-
-    namespace report {
-
-        class ReportManager {
-            <<interface>>
-
-            +void startTest()
-            +void pass()
-            +void fail()
-            +void skip()
-            +void attachScreenshot()
-            +void flush()
-        }
-
-        class AllureReport {
-            +void startTest()
-            +void pass()
-            +void fail()
-            +void skip()
-            +void attachScreenshot()
-            +void flush()
-        }
-
-        class ExtentReport {
-            +void startTest()
-            +void pass()
-            +void fail()
-            +void skip()
-            +void attachScreenshot()
-            +void flush()
-        }
+        #WebDriver createDriver(
+            FirefoxOptions options
+        )
     }
 
-    ReportManager <|.. AllureReport
-    ReportManager <|.. ExtentReport
+    class EdgeDriverManager {
+        #EdgeOptions getOptions(
+            DriverConfig config
+        )
+
+        #WebDriver createDriver(
+            EdgeOptions options
+        )
+    }
+}
+
+
+%% =========================================================
+%% ELEMENT
+%% =========================================================
+
+namespace element {
+
+    class Element {
+        -WebDriver driver
+        -String locator
+        -By byLocator
+        -String dynamicLocator
+
+        +Element(String locator)
+        +Element(By byLocator)
+
+        +WebDriver getDriver()
+        +By getLocator()
+
+        +WebElement getElement()
+        +List~WebElement~ getElements()
+
+        +void setValue(Object... args)
+
+        +String getText()
+        +void click()
+        +void check()
+        +void enter(String value)
+        +void hover()
+        +void moveTo()
+
+        +boolean isChecked()
+        +boolean isDisplayed()
+        +boolean isExist()
+        +void waitForVisible()
+    }
+}
+
+
+%% =========================================================
+%% LISTENER
+%% =========================================================
+
+namespace listener {
+
+    class TestListener {
+        +void onTestStart(
+            ITestResult result
+        )
+
+        +void onTestSuccess(
+            ITestResult result
+        )
+
+        +void onTestFailure(
+            ITestResult result
+        )
+
+        +void onTestSkipped(
+            ITestResult result
+        )
+
+        +void onFinish(
+            ITestContext context
+        )
+    }
+}
+
+
+%% =========================================================
+%% REPORT
+%% =========================================================
+
+namespace report {
+
+    class ReportManager {
+        <<interface>>
+
+        +void startTest()
+        +void pass()
+        +void fail()
+        +void skip()
+        +void attachScreenshot()
+        +void flush()
+    }
+
+    class AllureReport {
+        +void startTest()
+        +void pass()
+        +void fail()
+        +void skip()
+        +void attachScreenshot()
+        +void flush()
+    }
+
+    class ExtentReport {
+        +void startTest()
+        +void pass()
+        +void fail()
+        +void skip()
+        +void attachScreenshot()
+        +void flush()
+    }
+}
+
+
+%% =========================================================
+%% UTILITIES
+%% =========================================================
+
+namespace utilities {
+
+    class DataUtilities {
+        +DriverConfig getDriverConfig(
+            BrowserType browserType
+        )
+    }
+
+    class JsonHelper {
+        -Gson GSON
+
+        +T getData(
+            String jsonPath,
+            Class clazz
+        )
+
+        -JsonReader getJsonReader(
+            String jsonPath
+        )
+    }
+
+    class DurationUtilities {
+        +Duration ofMillis(
+            long milliseconds
+        )
+
+        +Duration ofSeconds(
+            long seconds
+        )
+
+        +Duration ofMinutes(
+            long minutes
+        )
+
+        +Duration ofHours(
+            long hours
+        )
+    }
+
+    class Assert {
+        +void assertTrue(
+            boolean condition,
+            String message
+        )
+
+        +void assertFalse(
+            boolean condition,
+            String message
+        )
+
+        +void assertEquals(
+            Object actual,
+            Object expected,
+            String message
+        )
+    }
+}
+
+
+%% =========================================================
+%% DRIVER RELATIONSHIPS
+%% =========================================================
+
+BaseDriver <|-- ChromeDriverManager
+BaseDriver <|-- FirefoxDriverManager
+BaseDriver <|-- EdgeDriverManager
+
+BrowserType ..> BaseDriver : maps to
+
+BaseDriverFactory ..> BrowserType : uses
+BaseDriverFactory ..> BaseDriver : creates
+
+BaseDriver ..> DriverConfig : uses
+
+DriverManager ..> WebDriver : manages
+
+
+%% =========================================================
+%% ELEMENT RELATIONSHIPS
+%% =========================================================
+
+Element ..> DriverManager : gets driver
+Element ..> WebDriver : uses
+Element ..> WebElement : uses
+Element ..> By : uses
+
+
+%% =========================================================
+%% LISTENER / REPORT
+%% =========================================================
+
+ReportManager <|.. AllureReport
+ReportManager <|.. ExtentReport
+
+
+%% =========================================================
+%% UTILITIES
+%% =========================================================
+
+DataUtilities ..> BrowserType : uses
+DataUtilities ..> DriverConfig : returns
+DataUtilities ..> JsonHelper : uses
+
+JsonHelper ..> BrowserType : deserializes
+JsonHelper ..> DurationUtilities : uses
 ```
