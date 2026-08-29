@@ -13,7 +13,6 @@ public class DataUtilities {
      */
     public DriverConfig getDriverConfig(BrowserType browserType) {
         String filePath = Constant.CONFIG_PATH + browserType.name().toLowerCase() + ".json";
-        return JsonHelper.getData(filePath, DriverConfig.class
-        );
+        return JsonHelper.getData(filePath, DriverConfig.class);
     }
 }
