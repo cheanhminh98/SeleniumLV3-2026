@@ -4,7 +4,7 @@
   "remoteURL": "",
   "baseUrl": "https://google.com",
   "startMaximized": true,
-  "timeout": 5000,
-  "pageLoadTimeout": 30000,
+  "timeout": 5,
+  "pageLoadTimeout": 30,
   "pollingInterval": 200
 }

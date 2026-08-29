@@ -1,5 +1,7 @@
-package com.driver;
+package com.data;
 
+import com.driver.BaseDriver;
+import com.driver.ChromeDriverManager;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -7,12 +9,20 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum BrowserType {
 
-    CHROME("Chrome", ChromeDriverManager.class);
+    CHROME(ChromeDriverManager.class);
 
-    private final String browserName;
     private final Class<? extends BaseDriver<?>> baseDriver;
 
+    /**
+     * Gets the browser type
+     *
+     * @param browser browser name
+     * @return browser type
+     */
     public static BrowserType getBrowser(String browser) {
+        if (browser == null || browser.isBlank()) {
+            throw new IllegalArgumentException("Browser cannot be null or empty");
+        }
         try {
             return valueOf(browser.trim().toUpperCase());
         } catch (IllegalArgumentException e) {

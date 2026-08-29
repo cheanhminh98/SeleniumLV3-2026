@@ -1,34 +1,59 @@
 package com.utilities;
 
-import com.google.gson.Gson;
+import com.data.BrowserType;
+import com.google.gson.*;
 import com.google.gson.stream.JsonReader;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.lang.reflect.Type;
+import java.time.Duration;
 
 @Slf4j
 public class JsonHelper {
 
-    public static <T> T getData(String jsonPath, Class<?> clazz) {
+    /**
+     * Gets data from a JSON file.
+     *
+     * @param jsonPath JSON file path
+     * @param clazz target class
+     * @param <T> target type
+     * @return parsed data
+     */
+    public static <T> T getData(String jsonPath, Class<T> clazz) {
         try {
             log.debug("JsonHelper: getData");
-            Gson gson = new Gson();
             JsonReader reader = getJsonReader(jsonPath);
-            return gson.fromJson(reader, clazz);
-        } catch (Exception e) {
-            log.error(e.getMessage());
-            throw e;
+            return GSON.fromJson(reader, clazz);
+        } catch (JsonSyntaxException e) {
+            log.error("Failed to read JSON: {}", jsonPath, e);
+            throw new RuntimeException("Cannot read JSON file: " + jsonPath, e);
         }
     }
 
+    /**
+     * Gets a JSON reader from the given file path.
+     *
+     * @param jsonPath JSON file path
+     * @return JSON reader
+     */
     private static JsonReader getJsonReader(String jsonPath) {
         try {
-            JsonReader reader;
-            reader = new JsonReader(new FileReader(jsonPath));
-            return reader;
+            return new JsonReader(new FileReader(jsonPath));
         } catch (FileNotFoundException e) {
-            return null;
+            throw new RuntimeException("JSON file does not exist: " + jsonPath, e);
         }
     }
+
+    /**
+     * Gson instance with custom deserializers.
+     */
+    private static final Gson GSON = new GsonBuilder()
+            .registerTypeAdapter(BrowserType.class, (JsonDeserializer<BrowserType>)
+                    (json, type, context) -> BrowserType.getBrowser(json.getAsString()))
+            .registerTypeAdapter(Duration.class,
+                    (JsonDeserializer<Duration>) (json, type, context) -> DurationUtilities.ofMillis(json.getAsLong()))
+            .create();
 }
+
