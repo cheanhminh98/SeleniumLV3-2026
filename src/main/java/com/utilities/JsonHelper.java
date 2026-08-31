@@ -1,14 +1,10 @@
 package com.utilities;
 
-import com.data.BrowserType;
 import com.google.gson.*;
 import com.google.gson.stream.JsonReader;
 import lombok.extern.slf4j.Slf4j;
-
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.lang.reflect.Type;
-import java.time.Duration;
 
 @Slf4j
 public class JsonHelper {
@@ -21,11 +17,11 @@ public class JsonHelper {
      * @param <T> target type
      * @return parsed data
      */
-    public static <T> T getData(String jsonPath, Class<T> clazz) {
+    public static <T> T getData(String jsonPath, Class<T> clazz, Gson gson) {
         try {
             log.debug("JsonHelper: getData");
             JsonReader reader = getJsonReader(jsonPath);
-            return GSON.fromJson(reader, clazz);
+            return gson.fromJson(reader, clazz);
         } catch (JsonSyntaxException e) {
             log.error("Failed to read JSON: {}", jsonPath, e);
             throw new RuntimeException("Cannot read JSON file: " + jsonPath, e);
@@ -45,15 +41,5 @@ public class JsonHelper {
             throw new RuntimeException("JSON file does not exist: " + jsonPath, e);
         }
     }
-
-    /**
-     * Gson instance with custom deserializers.
-     */
-    private static final Gson GSON = new GsonBuilder()
-            .registerTypeAdapter(BrowserType.class, (JsonDeserializer<BrowserType>)
-                    (json, type, context) -> BrowserType.getBrowser(json.getAsString()))
-            .registerTypeAdapter(Duration.class,
-                    (JsonDeserializer<Duration>) (json, type, context) -> Duration.ofMillis(json.getAsLong()))
-            .create();
 }
 
