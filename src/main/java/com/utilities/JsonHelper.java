@@ -10,6 +10,18 @@ import java.io.FileReader;
 public class JsonHelper {
 
     /**
+     * Gets data from a JSON file using the default Gson instance.
+     *
+     * @param jsonPath JSON file path
+     * @param clazz target class
+     * @param <T> target type
+     * @return parsed data
+     */
+    public static <T> T getData(String jsonPath, Class<T> clazz) {
+        return getData(jsonPath, clazz, new Gson());
+    }
+
+    /**
      * Gets data from a JSON file.
      *
      * @param jsonPath JSON file path
