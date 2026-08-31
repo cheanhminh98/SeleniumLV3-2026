@@ -53,7 +53,7 @@ public class JsonHelper {
             .registerTypeAdapter(BrowserType.class, (JsonDeserializer<BrowserType>)
                     (json, type, context) -> BrowserType.getBrowser(json.getAsString()))
             .registerTypeAdapter(Duration.class,
-                    (JsonDeserializer<Duration>) (json, type, context) -> DurationUtilities.ofMillis(json.getAsLong()))
+                    (JsonDeserializer<Duration>) (json, type, context) -> Duration.ofMillis(json.getAsLong()))
             .create();
 }
 
