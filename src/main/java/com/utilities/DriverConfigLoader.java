@@ -1,16 +1,10 @@
 package com.utilities;
 
-import com.adapter.BrowserTypeAdapter;
-import com.adapter.DurationTypeAdapter;
 import com.constant.Constant;
 import com.data.BrowserType;
 import com.driver.DriverConfig;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 
-import java.time.Duration;
-
-public class DataUtilities {
+public class DriverConfigLoader {
 
     /**
      * Gets driver configuration for the specified browser.
