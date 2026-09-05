@@ -1,10 +1,14 @@
 package com.report;
 
+import com.driver.DriverManager;
+import lombok.extern.slf4j.Slf4j;
 import org.openqa.selenium.WebDriver;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
+@Slf4j
 public class ReportManager {
 
     private static final List<Report> reports = new ArrayList<>();
@@ -34,9 +38,7 @@ public class ReportManager {
      * @param testName test name
      */
     public static void startTest(String testName) {
-        for (Report report : reports) {
-            report.startTest(testName);
-        }
+        executeForEachReport(report -> report.startTest(testName));
     }
 
     /**
@@ -45,9 +47,7 @@ public class ReportManager {
      * @param message message to log
      */
     public static void info(String message) {
-        for (Report report : reports) {
-            report.info(message);
-        }
+        executeForEachReport(report -> report.info(message));
     }
 
     /**
@@ -56,9 +56,7 @@ public class ReportManager {
      * @param message message to log
      */
     public static void pass(String message) {
-        for (Report report : reports) {
-            report.pass(message);
-        }
+        executeForEachReport(report -> report.pass(message));
     }
 
     /**
@@ -67,9 +65,7 @@ public class ReportManager {
      * @param message message to log
      */
     public static void fail(String message) {
-        for (Report report : reports) {
-            report.fail(message);
-        }
+        executeForEachReport(report -> report.fail(message));
     }
 
     /**
@@ -78,9 +74,7 @@ public class ReportManager {
      * @param message message to log
      */
     public static void skip(String message) {
-        for (Report report : reports) {
-            report.skip(message);
-        }
+        executeForEachReport(report -> report.skip(message));
     }
 
     /**
@@ -90,8 +84,36 @@ public class ReportManager {
      * @param name screenshot name
      */
     public static void attachScreenshot(WebDriver driver, String name) {
+        executeForEachReport(report -> report.attachScreenshot(driver, name));
+    }
+
+    /**
+     * Attaches a screenshot to all reports using DriverManager.
+     *
+     * @param driverManager driver manager
+     * @param name screenshot name
+     */
+    public static void attachScreenshot(DriverManager driverManager, String name) {
+        executeForEachReport(report -> report.attachScreenshot(driverManager, name));
+    }
+
+    /**
+     * Runs the action for each report.
+     * If one report fails, the other reports continue to run
+     *
+     * @param action action to run
+     */
+    private static void executeForEachReport(Consumer<Report> action) {
         for (Report report : reports) {
-            report.attachScreenshot(driver, name);
+            try {
+                action.accept(report);
+            } catch (Exception e) {
+                log.error(
+                        "Report execution failed for {}: {}",
+                        report.getClass().getSimpleName(),
+                        e.getMessage()
+                );
+            }
         }
     }
 }

@@ -18,7 +18,7 @@ public class TestNGReportListener implements ITestListener {
     @Override
     public void onTestStart(ITestResult result) {
         String testName = getTestName(result);
-        log.info(testName + " test is starting.");
+        log.info("{} test is starting.", testName);
         ReportManager.startTest(testName);
     }
 
@@ -30,7 +30,7 @@ public class TestNGReportListener implements ITestListener {
     @Override
     public void onTestSuccess(ITestResult result) {
         String testName = getTestName(result);
-        log.info(testName + " test is succeeded.");
+        log.info("{} test is succeeded.", testName);
         ReportManager.pass("Test passed.");
     }
 
@@ -42,7 +42,7 @@ public class TestNGReportListener implements ITestListener {
     @Override
     public void onTestFailure(ITestResult result) {
         String testName = getTestName(result);
-        log.error(testName + " test is failed.");
+        log.error("{} test is failed.", testName);
         ReportManager.fail(getFailureMessage(result));
         takeScreenshot(testName);
     }
@@ -55,7 +55,7 @@ public class TestNGReportListener implements ITestListener {
     @Override
     public void onTestSkipped(ITestResult result) {
         String testName = getTestName(result);
-        log.info(testName + " test is skipped.");
+        log.info("{} test is skipped.", testName);
         ReportManager.skip(getFailureMessage(result));
     }
 

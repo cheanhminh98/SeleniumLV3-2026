@@ -1,5 +1,6 @@
 package com.report;
 
+import com.driver.DriverManager;
 import io.qameta.allure.Allure;
 import org.openqa.selenium.OutputType;
 import org.openqa.selenium.TakesScreenshot;
@@ -72,5 +73,19 @@ public class AllureReport implements Report {
         }
         byte[] screenshot = ((TakesScreenshot) driver).getScreenshotAs(OutputType.BYTES);
         Allure.addAttachment(name, "image/png", new ByteArrayInputStream(screenshot), ".png");
+    }
+
+    /**
+     * Attaches a screenshot to the Allure report using DriverManager.
+     *
+     * @param driverManager driver manager
+     * @param name screenshot name
+     */
+    @Override
+    public void attachScreenshot(DriverManager driverManager, String name) {
+        if (driverManager == null) {
+            return;
+        }
+        attachScreenshot(DriverManager.getDriver(), name);
     }
 }

@@ -4,23 +4,37 @@ import com.aventstack.extentreports.ExtentReports;
 import com.aventstack.extentreports.ExtentTest;
 import com.aventstack.extentreports.Status;
 import com.aventstack.extentreports.reporter.ExtentSparkReporter;
+import com.driver.DriverManager;
 import org.openqa.selenium.OutputType;
 import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
 
 public class ExtentReport implements Report {
 
-    private static final String REPORT_PATH = "target/extent-report/ExtentReport.html";
+    private static final String DEFAULT_REPORT_PATH = "target/extent-report/ExtentReport.html";
     private final ExtentReports extentReports;
     private final ThreadLocal<ExtentTest> extentTest = new ThreadLocal<>();
 
     /**
-     * Creates an ExtentReport instance.
-     *
-     * @param extentReports ExtentReports instance
+     * Creates an ExtentReport instance using the default report path.
      */
-    public ExtentReport(ExtentReports extentReports) {
-        this.extentReports = extentReports;
+    public ExtentReport() {
+        this(DEFAULT_REPORT_PATH);
+    }
+
+    /**
+     * Creates an ExtentReport instance using the specified report path.
+     *
+     * @param reportPath path of the Extent report
+     */
+    public ExtentReport(String reportPath) {
+        if (reportPath == null || reportPath.isBlank()) {
+            throw new IllegalArgumentException("Extent report path cannot be null or empty.");
+        }
+        ExtentSparkReporter sparkReporter = new ExtentSparkReporter(reportPath);
+        extentReports = new ExtentReports();
+        extentReports.attachReporter(sparkReporter);
+        registerShutdownHook();
     }
 
     /**
@@ -89,9 +103,22 @@ public class ExtentReport implements Report {
     }
 
     /**
+     * Attaches a screenshot to the ExtentReports report using DriverManager.
+     *
+     * @param driverManager driver manager
+     * @param name screenshot name
+     */
+    @Override
+    public void attachScreenshot(DriverManager driverManager, String name) {
+        if (driverManager == null) {
+            return;
+        }
+        attachScreenshot(DriverManager.getDriver(), name);
+    }
+
+    /**
      * Ends the current Extent test.
      */
-//    @Override
     public void endTest() {
         extentTest.remove();
     }
@@ -99,7 +126,6 @@ public class ExtentReport implements Report {
     /**
      * Flushes ExtentReports.
      */
-//    @Override
     public void flush() {
         extentReports.flush();
     }
@@ -124,15 +150,5 @@ public class ExtentReport implements Report {
      */
     private void registerShutdownHook() {
         Runtime.getRuntime().addShutdownHook(new Thread(extentReports::flush));
-    }
-
-    /**
-     * Creates and configures an ExtentReports instance.
-     */
-    public ExtentReport() {
-        ExtentSparkReporter sparkReporter = new ExtentSparkReporter(REPORT_PATH);
-        extentReports = new ExtentReports();
-        extentReports.attachReporter(sparkReporter);
-        registerShutdownHook();
     }
 }

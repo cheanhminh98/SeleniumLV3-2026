@@ -20,7 +20,7 @@ public class JUnitReportExtension implements BeforeTestExecutionCallback, AfterT
     @Override
     public void beforeTestExecution(ExtensionContext context) {
         String testName = getTestName(context);
-        log.info(testName + " test is starting.");
+        log.info("{} test is starting.", testName);
         ReportManager.startTest(testName);
     }
 
@@ -34,12 +34,12 @@ public class JUnitReportExtension implements BeforeTestExecutionCallback, AfterT
     public void afterTestExecution(ExtensionContext context) {
         String testName = getTestName(context);
         if (context.getExecutionException().isEmpty()) {
-            log.info(testName + " test is succeeded.");
+            log.info("{} test is succeeded.", testName);
             ReportManager.pass("Test passed.");
             return;
         }
         Throwable cause = context.getExecutionException().get();
-        log.error(testName + " test is failed.");
+        log.error("{} test is failed.", testName);
         ReportManager.fail(getFailureMessage(cause));
         takeScreenshot(testName);
     }
