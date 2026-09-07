@@ -4,37 +4,41 @@ import com.aventstack.extentreports.ExtentReports;
 import com.aventstack.extentreports.ExtentTest;
 import com.aventstack.extentreports.Status;
 import com.aventstack.extentreports.reporter.ExtentSparkReporter;
+import com.constant.Constant;
 import com.driver.DriverManager;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.utilities.JsonHelper;
 import org.openqa.selenium.OutputType;
 import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
 
+import java.io.File;
+import java.io.IOException;
+
 public class ExtentReport implements Report {
 
-    private static final String DEFAULT_REPORT_PATH = "target/extent-report/ExtentReport.html";
     private final ExtentReports extentReports;
     private final ThreadLocal<ExtentTest> extentTest = new ThreadLocal<>();
 
     /**
-     * Creates an ExtentReport instance using the default report path.
-     */
-    public ExtentReport() {
-        this(DEFAULT_REPORT_PATH);
-    }
-
-    /**
-     * Creates an ExtentReport instance using the specified report path.
+     * Creates an ExtentReport instance.
      *
-     * @param reportPath path of the Extent report
+     * @throws IOException if the Extent configuration cannot be loaded
      */
-    public ExtentReport(String reportPath) {
-        if (reportPath == null || reportPath.isBlank()) {
-            throw new IllegalArgumentException("Extent report path cannot be null or empty.");
+    public ExtentReport() throws IOException {
+        JsonObject config = JsonHelper.getData(
+                Constant.EXTENT_REPORT_CONFIG_PATH,
+                JsonObject.class
+        );
+        String reportPath = config.get("reportPath").getAsString();
+        if (reportPath.isBlank()) {
+            throw new IllegalArgumentException("'reportPath' cannot be empty in: " + Constant.EXTENT_REPORT_CONFIG_PATH);
         }
         ExtentSparkReporter sparkReporter = new ExtentSparkReporter(reportPath);
+        sparkReporter.loadJSONConfig(new File(Constant.EXTENT_REPORT_CONFIG_PATH));
         extentReports = new ExtentReports();
         extentReports.attachReporter(sparkReporter);
-        registerShutdownHook();
     }
 
     /**
