@@ -93,8 +93,7 @@ public class TestNGReportListener implements ITestListener {
      */
     private void takeScreenshot(String testName) {
         try {
-            DriverManager driverManager = new DriverManager();
-            ReportManager.attachScreenshot(driverManager, testName + " - Failure");
+            ReportManager.attachScreenshot(testName + " - Failure");
         } catch (Exception e) {
             log.error("Unable to capture failure screenshot: {}", e.getMessage());
         }

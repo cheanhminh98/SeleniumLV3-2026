@@ -1,7 +1,5 @@
 package com.report;
 
-import com.driver.DriverManager;
-
 public interface Report {
 
     /**
@@ -42,8 +40,7 @@ public interface Report {
     /**
      * Attaches a screenshot to the report.
      *
-     * @param driverManager driver manager used by the test
-     * @param name screenshot name
+     * @param name  screenshot name
      */
-    void attachScreenshot(DriverManager driverManager, String name);
+    void attachScreenshot(String name);
 }

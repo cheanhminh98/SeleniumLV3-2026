@@ -22,17 +22,21 @@ public class DriverManager {
      *
      * @param webDriver WebDriver instance
      */
-    public void setDriver(WebDriver webDriver) {
+    public static void setDriver(WebDriver webDriver) {
         driver.set(webDriver);
     }
 
     /**
      * Quits the WebDriver.
      */
-    public void quitDriver() {
-        if (driver.get() != null) {
-            driver.get().quit();
-            driver.remove();
+    public static void quitDriver() {
+        WebDriver webDriver = getDriver();
+        if (webDriver != null) {
+            try {
+                webDriver.quit();
+            } finally {
+                driver.remove();
+            }
         }
     }
 
@@ -41,7 +45,7 @@ public class DriverManager {
      *
      * @param url to open
      */
-    public void open(String url) {
+    public static void open(String url) {
         if (url == null || url.isBlank()) {
             throw new IllegalArgumentException("URL cannot be null or empty.");
         }
@@ -53,7 +57,7 @@ public class DriverManager {
      *
      * @return screenshot as byte array, or null if screenshot cannot be captured
      */
-    public byte[] captureScreen() {
+    public static byte[] captureScreen() {
         WebDriver webDriver = getDriver();
         if (webDriver == null) {
             throw new IllegalStateException("WebDriver has not been initialized.");

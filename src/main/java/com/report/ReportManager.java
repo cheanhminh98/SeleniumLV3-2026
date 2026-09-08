@@ -80,11 +80,10 @@ public class ReportManager {
     /**
      * Attaches a screenshot to all reports using DriverManager.
      *
-     * @param driverManager driver manager
      * @param name screenshot name
      */
-    public static void attachScreenshot(DriverManager driverManager, String name) {
-        executeForEachReport(report -> report.attachScreenshot(driverManager, name));
+    public static void attachScreenshot(String name) {
+        executeForEachReport(report -> report.attachScreenshot(name));
     }
 
     /**

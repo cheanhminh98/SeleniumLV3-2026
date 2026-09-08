@@ -9,8 +9,8 @@ import com.driver.DriverManager;
 import com.google.gson.JsonObject;
 import com.utilities.JsonHelper;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
+import java.util.Properties;
 
 public class ExtentReport implements Report {
 
@@ -18,23 +18,26 @@ public class ExtentReport implements Report {
     private final ThreadLocal<ExtentTest> extentTest = new ThreadLocal<>();
 
     /**
-     * Creates an ExtentReport instance.
+     * Creates and initializes the ExtentReports instance.
      *
-     * @throws IOException if the Extent configuration cannot be loaded
+     * @throws IOException if the configuration file cannot be loaded
      */
     public ExtentReport() throws IOException {
-        JsonObject config = JsonHelper.getData(
-                Constant.EXTENT_REPORT_CONFIG_PATH,
-                JsonObject.class
-        );
-        String reportPath = config.get("reportPath").getAsString();
-        if (reportPath.isBlank()) {
-            throw new IllegalArgumentException("'reportPath' cannot be empty in: " + Constant.EXTENT_REPORT_CONFIG_PATH);
+        Properties properties = new Properties();
+        try (InputStream inputStream = getClass()
+                .getClassLoader()
+                .getResourceAsStream(Constant.EXTENT_REPORT_CONFIG_PATH)) {
+            if (inputStream == null) {
+                throw new FileNotFoundException("Extent report configuration not found.");
+            }
+            properties.load(inputStream);
         }
-        ExtentSparkReporter sparkReporter = new ExtentSparkReporter(reportPath);
-        sparkReporter.loadJSONConfig(new File(Constant.EXTENT_REPORT_CONFIG_PATH));
+        String reportPath = System.getProperty(
+                "reportPath",
+                properties.getProperty("reportPath")
+        );
         extentReports = new ExtentReports();
-        extentReports.attachReporter(sparkReporter);
+        extentReports.attachReporter(new ExtentSparkReporter(reportPath));
     }
 
     /**
@@ -90,16 +93,12 @@ public class ExtentReport implements Report {
     /**
      * Attaches a screenshot to the ExtentReports report using DriverManager.
      *
-     * @param driverManager driver manager
-     * @param name screenshot name
+     * @param name  screenshot name
      */
     @Override
-    public void attachScreenshot(DriverManager driverManager, String name) {
-        if (driverManager == null) {
-            throw new IllegalArgumentException("DriverManager cannot be null.");
-        }
-        byte[] screenshot = driverManager.captureScreen();
-         String base64 = java.util.Base64.getEncoder().encodeToString(screenshot);
+    public void attachScreenshot(String name) {
+        byte[] screenshot = DriverManager.captureScreen();
+        String base64 = java.util.Base64.getEncoder().encodeToString(screenshot);
         getCurrentTest().addScreenCaptureFromBase64String(base64, name);
     }
 

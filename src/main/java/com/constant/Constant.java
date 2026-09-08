@@ -6,5 +6,5 @@ public class Constant {
     public static final String CONFIG_PATH = "src/test/resources/config/";
 
     //REPORTS
-    public static final String EXTENT_REPORT_CONFIG_PATH = "src/test/resources/config/";
+    public static final String EXTENT_REPORT_CONFIG_PATH = "src/test/resources/properties/extent-report.properties";
 }

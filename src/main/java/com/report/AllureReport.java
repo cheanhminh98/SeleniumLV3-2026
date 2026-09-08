@@ -61,15 +61,11 @@ public class AllureReport implements Report {
     /**
      * Attaches a screenshot to the Allure report using DriverManager.
      *
-     * @param driverManager driver manager
-     * @param name screenshot name
+     * @param name  screenshot name
      */
     @Override
-    public void attachScreenshot(DriverManager driverManager, String name) {
-        if (driverManager == null) {
-            throw new IllegalArgumentException("DriverManager cannot be null.");
-        }
-        byte[] screenshot = driverManager.captureScreen();
+    public void attachScreenshot(String name) {
+        byte[] screenshot = DriverManager.captureScreen();
         Allure.addAttachment(name, "image/png", new ByteArrayInputStream(screenshot), ".png");
     }
 }

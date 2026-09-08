@@ -10,7 +10,6 @@ import org.openqa.selenium.WebDriver;
 
 public abstract class TestBase {
 
-    protected DriverManager driverManager;
     protected DriverConfigLoader driverConfigLoader = new DriverConfigLoader();
 
     /**
@@ -23,19 +22,15 @@ public abstract class TestBase {
         WebDriver webDriver = BaseDriverFactory
                 .getDriver(browserType)
                 .createWebDriver(driverConfig);
-        driverManager = new DriverManager();
-        driverManager.setDriver(webDriver);
-        driverManager.open(driverConfig.getBaseUrl());
+        DriverManager.setDriver(webDriver);
+        DriverManager.open(driverConfig.getBaseUrl());
     }
 
     /**
      * Quits WebDriver.
      */
     protected void tearDown() {
-        if (driverManager != null) {
-            driverManager.quitDriver();
-            driverManager = null;
-        }
+        DriverManager.quitDriver();
     }
 
     /**
@@ -46,7 +41,9 @@ public abstract class TestBase {
     public WebDriver getDriver() {
         WebDriver webDriver = DriverManager.getDriver();
         if (webDriver == null) {
-            throw new IllegalStateException("WebDriver has not been initialized.");
+            throw new IllegalStateException(
+                    "WebDriver has not been initialized."
+            );
         }
         return webDriver;
     }
