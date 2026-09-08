@@ -57,7 +57,7 @@ public class ExtentReport implements Report {
      * @return report output path
      */
     private String getReportPath(Properties properties) {
-        String reportPath = properties.getProperty("extent.reporter.spark.out");
+        String reportPath = System.getProperty("extent.reporter.spark.out", properties.getProperty("extent.reporter.spark.out"));
         if (reportPath == null || reportPath.isBlank()) {
             throw new IllegalStateException("Property 'extent.reporter.spark.out' is not configured.");
         }
