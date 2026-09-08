@@ -1,7 +1,6 @@
 package com.report;
 
 import com.driver.DriverManager;
-import org.openqa.selenium.WebDriver;
 
 public interface Report {
 
@@ -43,10 +42,8 @@ public interface Report {
     /**
      * Attaches a screenshot to the report.
      *
-     * @param driver WebDriver used by the test
+     * @param driverManager driver manager used by the test
      * @param name screenshot name
      */
-    void attachScreenshot(WebDriver driver, String name);
-
     void attachScreenshot(DriverManager driverManager, String name);
 }

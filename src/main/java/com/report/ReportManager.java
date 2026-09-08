@@ -78,16 +78,6 @@ public class ReportManager {
     }
 
     /**
-     * Attaches a screenshot to all reports.
-     *
-     * @param driver WebDriver instance
-     * @param name screenshot name
-     */
-    public static void attachScreenshot(WebDriver driver, String name) {
-        executeForEachReport(report -> report.attachScreenshot(driver, name));
-    }
-
-    /**
      * Attaches a screenshot to all reports using DriverManager.
      *
      * @param driverManager driver manager

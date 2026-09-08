@@ -76,14 +76,10 @@ public class JUnitReportExtension implements BeforeTestExecutionCallback, AfterT
      */
     private void takeScreenshot(String testName) {
         try {
-            WebDriver webDriver = DriverManager.getDriver();
-            if (webDriver == null) {
-                log.error("Unable to capture failure screenshot: " + "WebDriver is not available.");
-                return;
-            }
-            ReportManager.attachScreenshot(webDriver, testName + " - Failure");
+            DriverManager driverManager = new DriverManager();
+            ReportManager.attachScreenshot(driverManager, testName + " - Failure");
         } catch (Exception e) {
-            log.error("Unable to capture failure screenshot: " + e.getMessage());
+            log.error("Unable to capture failure screenshot: {}", e.getMessage());
         }
     }
 }

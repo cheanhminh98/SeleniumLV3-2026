@@ -93,13 +93,10 @@ public class TestNGReportListener implements ITestListener {
      */
     private void takeScreenshot(String testName) {
         try {
-            WebDriver driver = DriverManager.getDriver();
-            if (driver == null) {
-                return;
-            }
-            ReportManager.attachScreenshot(driver, testName + " - Failure");
+            DriverManager driverManager = new DriverManager();
+            ReportManager.attachScreenshot(driverManager, testName + " - Failure");
         } catch (Exception e) {
-            log.error("Unable to capture failure screenshot: " + e.getMessage());
+            log.error("Unable to capture failure screenshot: {}", e.getMessage());
         }
     }
 }

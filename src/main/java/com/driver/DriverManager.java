@@ -1,5 +1,7 @@
 package com.driver;
 
+import org.openqa.selenium.OutputType;
+import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
 
 public class DriverManager {
@@ -44,5 +46,25 @@ public class DriverManager {
             throw new IllegalArgumentException("URL cannot be null or empty.");
         }
         getDriver().navigate().to(url);
+    }
+
+    /**
+     * Captures a screenshot from the current WebDriver.
+     *
+     * @return screenshot as byte array, or null if screenshot cannot be captured
+     */
+    public byte[] captureScreen() {
+        WebDriver webDriver = getDriver();
+        if (webDriver == null) {
+            throw new IllegalStateException("WebDriver has not been initialized.");
+        }
+        if (!(webDriver instanceof TakesScreenshot)) {throw new IllegalStateException(
+                "WebDriver does not support screenshots.");
+        }
+        try {
+            return ((TakesScreenshot) webDriver).getScreenshotAs(OutputType.BYTES);
+        } catch (Exception e) {
+            throw new RuntimeException("Unable to capture screenshot.", e);
+        }
     }
 }

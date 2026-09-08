@@ -6,12 +6,8 @@ import com.aventstack.extentreports.Status;
 import com.aventstack.extentreports.reporter.ExtentSparkReporter;
 import com.constant.Constant;
 import com.driver.DriverManager;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.utilities.JsonHelper;
-import org.openqa.selenium.OutputType;
-import org.openqa.selenium.TakesScreenshot;
-import org.openqa.selenium.WebDriver;
 
 import java.io.File;
 import java.io.IOException;
@@ -92,21 +88,6 @@ public class ExtentReport implements Report {
     }
 
     /**
-     * Captures and attaches a screenshot to ExtentReports.
-     *
-     * @param driver WebDriver used by the test
-     * @param name screenshot name
-     */
-    @Override
-    public void attachScreenshot(WebDriver driver, String name) {
-        if (!(driver instanceof TakesScreenshot)) {
-            return;
-        }
-        String screenshot = ((TakesScreenshot) driver).getScreenshotAs(OutputType.BASE64);
-        extentTest.get().addScreenCaptureFromBase64String(screenshot, name);
-    }
-
-    /**
      * Attaches a screenshot to the ExtentReports report using DriverManager.
      *
      * @param driverManager driver manager
@@ -115,9 +96,11 @@ public class ExtentReport implements Report {
     @Override
     public void attachScreenshot(DriverManager driverManager, String name) {
         if (driverManager == null) {
-            return;
+            throw new IllegalArgumentException("DriverManager cannot be null.");
         }
-        attachScreenshot(DriverManager.getDriver(), name);
+        byte[] screenshot = driverManager.captureScreen();
+         String base64 = java.util.Base64.getEncoder().encodeToString(screenshot);
+        getCurrentTest().addScreenCaptureFromBase64String(base64, name);
     }
 
     /**

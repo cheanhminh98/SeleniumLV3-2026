@@ -2,9 +2,7 @@ package com.report;
 
 import com.driver.DriverManager;
 import io.qameta.allure.Allure;
-import org.openqa.selenium.OutputType;
-import org.openqa.selenium.TakesScreenshot;
-import org.openqa.selenium.WebDriver;
+import io.qameta.allure.model.Status;
 
 import java.io.ByteArrayInputStream;
 
@@ -37,7 +35,7 @@ public class AllureReport implements Report {
      */
     @Override
     public void pass(String message) {
-        Allure.step(message);
+        Allure.step(message, Status.PASSED);
     }
 
     /**
@@ -47,7 +45,7 @@ public class AllureReport implements Report {
      */
     @Override
     public void fail(String message) {
-        Allure.step(message);
+        Allure.step(message, Status.FAILED);
     }
 
     /**
@@ -57,22 +55,7 @@ public class AllureReport implements Report {
      */
     @Override
     public void skip(String message) {
-        Allure.step(message);
-    }
-
-    /**
-     * Captures and attaches a screenshot to Allure.
-     *
-     * @param driver WebDriver used by the test
-     * @param name screenshot name
-     */
-    @Override
-    public void attachScreenshot(WebDriver driver, String name) {
-        if (!(driver instanceof TakesScreenshot)) {
-            return;
-        }
-        byte[] screenshot = ((TakesScreenshot) driver).getScreenshotAs(OutputType.BYTES);
-        Allure.addAttachment(name, "image/png", new ByteArrayInputStream(screenshot), ".png");
+        Allure.step(message, Status.SKIPPED);
     }
 
     /**
@@ -84,8 +67,9 @@ public class AllureReport implements Report {
     @Override
     public void attachScreenshot(DriverManager driverManager, String name) {
         if (driverManager == null) {
-            return;
+            throw new IllegalArgumentException("DriverManager cannot be null.");
         }
-        attachScreenshot(DriverManager.getDriver(), name);
+        byte[] screenshot = driverManager.captureScreen();
+        Allure.addAttachment(name, "image/png", new ByteArrayInputStream(screenshot), ".png");
     }
 }
