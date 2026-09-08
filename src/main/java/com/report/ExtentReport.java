@@ -21,43 +21,19 @@ public class ExtentReport implements Report {
      * Initializes ExtentReports.
      */
     public ExtentReport() {
-        Properties properties = loadProperties();
-        String reportPath = getReportPath(properties);
+        String reportPath = getReportPath();
         ExtentSparkReporter sparkReporter = new ExtentSparkReporter(reportPath);
         extentReports = new ExtentReports();
         extentReports.attachReporter(sparkReporter);
     }
 
     /**
-     * Loads Extent report configuration from the properties file.
-     *
-     * @return loaded properties
-     */
-    private Properties loadProperties() {
-        Properties properties = new Properties();
-        try (InputStream inputStream = getClass()
-                .getClassLoader()
-                .getResourceAsStream(
-                        Constant.EXTENT_REPORT_CONFIG_PATH)) {
-            if (inputStream == null) {
-                throw new IllegalStateException(
-                        "Extent report configuration file not found: " + Constant.EXTENT_REPORT_CONFIG_PATH);
-            }
-            properties.load(inputStream);
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to load Extent report configuration.", e);
-        }
-        return properties;
-    }
-
-    /**
      * Gets the Extent report output path.
      *
-     * @param properties report configuration
      * @return report output path
      */
-    private String getReportPath(Properties properties) {
-        String reportPath = System.getProperty("extent.reporter.spark.out", properties.getProperty("extent.reporter.spark.out"));
+    private String getReportPath() {
+        String reportPath = System.getProperty("extent.reporter.spark.out", "test-output/ExtentReport/index.html");
         if (reportPath == null || reportPath.isBlank()) {
             throw new IllegalStateException("Property 'extent.reporter.spark.out' is not configured.");
         }
@@ -153,12 +129,5 @@ public class ExtentReport implements Report {
                             "startTest() must be called before logging.");
         }
         return test;
-    }
-
-    /**
-     * Registers a JVM shutdown hook to flush ExtentReports.
-     */
-    private void registerShutdownHook() {
-        Runtime.getRuntime().addShutdownHook(new Thread(extentReports::flush));
     }
 }
