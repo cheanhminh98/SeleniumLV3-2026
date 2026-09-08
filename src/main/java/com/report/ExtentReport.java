@@ -18,26 +18,50 @@ public class ExtentReport implements Report {
     private final ThreadLocal<ExtentTest> extentTest = new ThreadLocal<>();
 
     /**
-     * Creates and initializes the ExtentReports instance.
-     *
-     * @throws IOException if the configuration file cannot be loaded
+     * Initializes ExtentReports.
      */
-    public ExtentReport() throws IOException {
+    public ExtentReport() {
+        Properties properties = loadProperties();
+        String reportPath = getReportPath(properties);
+        ExtentSparkReporter sparkReporter = new ExtentSparkReporter(reportPath);
+        extentReports = new ExtentReports();
+        extentReports.attachReporter(sparkReporter);
+    }
+
+    /**
+     * Loads Extent report configuration from the properties file.
+     *
+     * @return loaded properties
+     */
+    private Properties loadProperties() {
         Properties properties = new Properties();
         try (InputStream inputStream = getClass()
                 .getClassLoader()
-                .getResourceAsStream(Constant.EXTENT_REPORT_CONFIG_PATH)) {
+                .getResourceAsStream(
+                        Constant.EXTENT_REPORT_CONFIG_PATH)) {
             if (inputStream == null) {
-                throw new FileNotFoundException("Extent report configuration not found.");
+                throw new IllegalStateException(
+                        "Extent report configuration file not found: " + Constant.EXTENT_REPORT_CONFIG_PATH);
             }
             properties.load(inputStream);
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to load Extent report configuration.", e);
         }
-        String reportPath = System.getProperty(
-                "reportPath",
-                properties.getProperty("reportPath")
-        );
-        extentReports = new ExtentReports();
-        extentReports.attachReporter(new ExtentSparkReporter(reportPath));
+        return properties;
+    }
+
+    /**
+     * Gets the Extent report output path.
+     *
+     * @param properties report configuration
+     * @return report output path
+     */
+    private String getReportPath(Properties properties) {
+        String reportPath = properties.getProperty("extent.reporter.spark.out");
+        if (reportPath == null || reportPath.isBlank()) {
+            throw new IllegalStateException("Property 'extent.reporter.spark.out' is not configured.");
+        }
+        return reportPath;
     }
 
     /**
