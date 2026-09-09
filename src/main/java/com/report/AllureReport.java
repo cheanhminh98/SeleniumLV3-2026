@@ -3,6 +3,7 @@ package com.report;
 import com.driver.DriverManager;
 import io.qameta.allure.Allure;
 import io.qameta.allure.model.Status;
+import org.openqa.selenium.OutputType;
 
 import java.io.ByteArrayInputStream;
 
@@ -65,7 +66,7 @@ public class AllureReport implements Report {
      */
     @Override
     public void attachScreenshot(String name) {
-        byte[] screenshot = DriverManager.captureScreenAsByte();
+        byte[] screenshot = DriverManager.getScreenshotAs(OutputType.BYTES);
         Allure.addAttachment(name, "image/png", new ByteArrayInputStream(screenshot), ".png");
     }
 }

@@ -4,13 +4,10 @@ import com.aventstack.extentreports.ExtentReports;
 import com.aventstack.extentreports.ExtentTest;
 import com.aventstack.extentreports.Status;
 import com.aventstack.extentreports.reporter.ExtentSparkReporter;
-import com.constant.Constant;
 import com.driver.DriverManager;
-import com.google.gson.JsonObject;
-import com.utilities.JsonHelper;
+import org.openqa.selenium.OutputType;
 
 import java.io.*;
-import java.util.Properties;
 
 public class ExtentReport implements Report {
 
@@ -98,7 +95,7 @@ public class ExtentReport implements Report {
     @Override
     public void attachScreenshot(String name) {
         getCurrentTest().addScreenCaptureFromBase64String(
-                DriverManager.captureScreenAsBase64(),
+                DriverManager.getScreenshotAs(OutputType.BASE64),
                 name);
     }
 
