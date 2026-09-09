@@ -3,7 +3,6 @@ package com.utilities;
 import com.constant.Constant;
 import com.data.BrowserType;
 import com.driver.DriverConfig;
-import com.google.gson.JsonObject;
 
 public class DriverConfigLoader {
 

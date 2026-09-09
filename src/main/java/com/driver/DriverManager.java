@@ -4,6 +4,8 @@ import org.openqa.selenium.OutputType;
 import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
 
+import java.util.Base64;
+
 public class DriverManager {
 
     private static final ThreadLocal<WebDriver> driver = new ThreadLocal<>();
@@ -57,7 +59,7 @@ public class DriverManager {
      *
      * @return screenshot as byte array, or null if screenshot cannot be captured
      */
-    public static byte[] captureScreen() {
+    public static byte[] captureScreenAsByte() {
         WebDriver webDriver = getDriver();
         if (webDriver == null) {
             throw new IllegalStateException("WebDriver has not been initialized.");
@@ -70,5 +72,14 @@ public class DriverManager {
         } catch (Exception e) {
             throw new RuntimeException("Unable to capture screenshot.", e);
         }
+    }
+
+    /**
+     * Captures a screenshot as a Base64 string.
+     *
+     * @return screenshot encoded as Base64
+     */
+    public static String captureScreenAsBase64() {
+        return Base64.getEncoder().encodeToString(captureScreenAsByte());
     }
 }

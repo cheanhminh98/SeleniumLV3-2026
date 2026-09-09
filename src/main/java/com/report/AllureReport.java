@@ -65,7 +65,7 @@ public class AllureReport implements Report {
      */
     @Override
     public void attachScreenshot(String name) {
-        byte[] screenshot = DriverManager.captureScreen();
+        byte[] screenshot = DriverManager.captureScreenAsByte();
         Allure.addAttachment(name, "image/png", new ByteArrayInputStream(screenshot), ".png");
     }
 }

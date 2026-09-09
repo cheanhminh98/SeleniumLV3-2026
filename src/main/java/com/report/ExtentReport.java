@@ -33,9 +33,9 @@ public class ExtentReport implements Report {
      * @return report output path
      */
     private String getReportPath() {
-        String reportPath = System.getProperty("extent.reporter.spark.out", "test-output/ExtentReport/index.html");
+        String reportPath = System.getProperty("extent.reporter.spark.out");
         if (reportPath == null || reportPath.isBlank()) {
-            throw new IllegalStateException("Property 'extent.reporter.spark.out' is not configured.");
+            reportPath = "test-output/ExtentReport/index.html";
         }
         return reportPath;
     }
@@ -97,9 +97,9 @@ public class ExtentReport implements Report {
      */
     @Override
     public void attachScreenshot(String name) {
-        byte[] screenshot = DriverManager.captureScreen();
-        String base64 = java.util.Base64.getEncoder().encodeToString(screenshot);
-        getCurrentTest().addScreenCaptureFromBase64String(base64, name);
+        getCurrentTest().addScreenCaptureFromBase64String(
+                DriverManager.captureScreenAsBase64(),
+                name);
     }
 
     /**
