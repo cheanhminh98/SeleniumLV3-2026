@@ -1,17 +1,19 @@
 package com.driver;
 
+import org.openqa.selenium.OutputType;
+import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
 
 public class DriverManager {
 
-    private final ThreadLocal<WebDriver> driver = new ThreadLocal<>();
+    private static final ThreadLocal<WebDriver> driver = new ThreadLocal<>();
 
     /**
      * Gets the current WebDriver.
      *
      * @return current WebDriver
      */
-    public WebDriver getDriver() {
+    public static WebDriver getDriver() {
         return driver.get();
     }
 
@@ -20,17 +22,21 @@ public class DriverManager {
      *
      * @param webDriver WebDriver instance
      */
-    public void setDriver(WebDriver webDriver) {
+    public static void setDriver(WebDriver webDriver) {
         driver.set(webDriver);
     }
 
     /**
      * Quits the WebDriver.
      */
-    public void quitDriver() {
-        if (driver.get() != null) {
-            driver.get().quit();
-            driver.remove();
+    public static void quitDriver() {
+        WebDriver webDriver = getDriver();
+        if (webDriver != null) {
+            try {
+                webDriver.quit();
+            } finally {
+                driver.remove();
+            }
         }
     }
 
@@ -39,7 +45,32 @@ public class DriverManager {
      *
      * @param url to open
      */
-    public void open(String url) {
+    public static void open(String url) {
+        if (url == null || url.isBlank()) {
+            throw new IllegalArgumentException("URL cannot be null or empty.");
+        }
         getDriver().navigate().to(url);
+    }
+
+    /**
+     * Captures a screenshot in the specified output type.
+     *
+     * @param outputType screenshot output type
+     * @param <T> screenshot result type
+     * @return screenshot in the specified output type
+     */
+    public static <T> T getScreenshotAs(OutputType<T> outputType) {
+        WebDriver webDriver = getDriver();
+        if (webDriver == null) {
+            throw new IllegalStateException("WebDriver has not been initialized.");
+        }
+        if (!(webDriver instanceof TakesScreenshot)) {
+            throw new IllegalStateException("WebDriver does not support screenshots.");
+        }
+        try {
+            return ((TakesScreenshot) webDriver).getScreenshotAs(outputType);
+        } catch (Exception e) {
+            throw new RuntimeException("Unable to capture screenshot.", e);
+        }
     }
 }
