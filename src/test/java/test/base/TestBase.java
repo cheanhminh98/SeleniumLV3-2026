@@ -19,10 +19,7 @@ public abstract class TestBase {
      */
     protected void setUp(BrowserType browserType) {
         DriverConfig driverConfig = driverConfigLoader.getDriverConfig(browserType);
-        WebDriver webDriver = BaseDriverFactory
-                .getDriver(browserType)
-                .createWebDriver(driverConfig);
-        DriverManager.setDriver(webDriver);
+        DriverManager.initialize(driverConfig);
         DriverManager.open(driverConfig.getBaseUrl());
     }
 
