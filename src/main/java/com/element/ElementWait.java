@@ -11,7 +11,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
 
-public class ElementWait {
+public class ElementWait extends FluentWait<WebDriver> {
 
     private final Element element;
 
@@ -22,29 +22,23 @@ public class ElementWait {
      * @param element element to wait for
      */
     ElementWait(Element element) {
+        super(DriverManager.getDriver());
         if (element == null) {
             throw new IllegalArgumentException("Element cannot be null.");
         }
         this.element = element;
+        withTimeout(DriverManager.getTimeout());
+        pollingEvery(DriverManager.getPollingInterval());
+        ignoring(NoSuchElementException.class);
+        ignoring(StaleElementReferenceException.class);
     }
 
     /**
-     * Waits until the specified Selenium condition is satisfied.
-     *
-     * @param condition Selenium wait condition
-     * @param <T> result type
-     * @return condition result
-     */
-    public <T> T until(Function<WebDriver, T> condition) {
-        return until(Collections.emptyList(), condition);
-    }
-
-    /**
-     * Waits until the specified Selenium condition is satisfied
+     * Waits until the specified condition is satisfied
      * using additional retry exceptions.
      *
      * @param additionalExceptions additional exceptions to ignore
-     * @param condition Selenium wait condition
+     * @param condition wait condition
      * @param <T> result type
      * @return condition result
      */
@@ -55,7 +49,7 @@ public class ElementWait {
         if (condition == null) {
             throw new IllegalArgumentException("Wait condition cannot be null.");
         }
-        FluentWait<WebDriver> wait = createWait();
+        ElementWait wait = new ElementWait(element);
         additionalExceptions.forEach(wait::ignoring);
         return wait.until(condition);
     }
@@ -69,19 +63,6 @@ public class ElementWait {
         if (condition == null) {
             throw new IllegalArgumentException("ElementCondition cannot be null.");
         }
-        until((Function<WebDriver, Boolean>) driver -> condition.matches(element));
-    }
-
-    /**
-     * Creates a FluentWait using the configured timeout and polling interval.
-     *
-     * @return configured FluentWait
-     */
-    private FluentWait<WebDriver> createWait() {
-        return new FluentWait<>(DriverManager.getDriver())
-                .withTimeout(DriverManager.getTimeout())
-                .pollingEvery(DriverManager.getPollingInterval())
-                .ignoring(NoSuchElementException.class)
-                .ignoring(StaleElementReferenceException.class);
+        super.until((Function<WebDriver, Boolean>) driver -> condition.matches(element));
     }
 }

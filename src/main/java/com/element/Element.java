@@ -2,14 +2,14 @@ package com.element;
 
 import com.driver.DriverManager;
 import lombok.Getter;
-import org.openqa.selenium.*;
+import org.openqa.selenium.By;
+import org.openqa.selenium.ElementClickInterceptedException;
+import org.openqa.selenium.ElementNotInteractableException;
+import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.WebElement;
 import org.openqa.selenium.interactions.Actions;
-import org.openqa.selenium.support.ui.WebDriverWait;
 
-import java.time.Duration;
 import java.util.List;
-import java.util.function.Supplier;
-import java.util.stream.Stream;
 
 public class Element {
 
@@ -17,18 +17,19 @@ public class Element {
 
     @Getter
     private final ElementWait wait = new ElementWait(this);
+
     private final ElementRetry retry = new ElementRetry(wait);
 
-    private static final List<Class<? extends Throwable>> INTERACTION_RETRY_EXCEPTIONS =
-            List.of(
-                    ElementClickInterceptedException.class,
-                    ElementNotInteractableException.class
-            );
+    private static final List<Class<? extends Throwable>>
+            INTERACTION_RETRY_EXCEPTIONS = List.of(
+            ElementClickInterceptedException.class,
+            ElementNotInteractableException.class
+    );
 
-    private static final List<Class<? extends Throwable>> INPUT_RETRY_EXCEPTIONS =
-            List.of(
-                    ElementNotInteractableException.class
-            );
+    private static final List<Class<? extends Throwable>>
+            INPUT_RETRY_EXCEPTIONS = List.of(
+            ElementNotInteractableException.class
+    );
 
     /**
      * Creates an Element from a locator string.
@@ -78,11 +79,13 @@ public class Element {
      * @param value value to enter
      */
     public void setValue(String value) {
-        retry.retryAction(() -> {
-            WebElement webElement = getElement();
-            webElement.clear();
-            webElement.sendKeys(value);
-            }, INPUT_RETRY_EXCEPTIONS
+        retry.retryAction(
+                () -> {
+                    WebElement webElement = getElement();
+                    webElement.clear();
+                    webElement.sendKeys(value);
+                },
+                INPUT_RETRY_EXCEPTIONS
         );
     }
 
@@ -92,26 +95,35 @@ public class Element {
      * @param value value to enter
      */
     public void enter(String value) {
-        retry.retryAction(() -> getElement().sendKeys(value), INPUT_RETRY_EXCEPTIONS);
+        retry.retryAction(
+                () -> getElement().sendKeys(value),
+                INPUT_RETRY_EXCEPTIONS
+        );
     }
 
     /**
      * Clicks the element.
      */
     public void click() {
-        retry.retryAction(() -> getElement().click(), INTERACTION_RETRY_EXCEPTIONS);
+        retry.retryAction(
+                () -> getElement().click(),
+                INTERACTION_RETRY_EXCEPTIONS
+        );
     }
 
     /**
      * Checks the element if it is not already selected.
      */
     public void check() {
-        retry.retryAction(() -> {
-            WebElement webElement = getElement();
-            if (!webElement.isSelected()) {
-                webElement.click();
-                 }
-            }, INTERACTION_RETRY_EXCEPTIONS
+        retry.retryAction(
+                () -> {
+                    WebElement webElement = getElement();
+
+                    if (!webElement.isSelected()) {
+                        webElement.click();
+                    }
+                },
+                INTERACTION_RETRY_EXCEPTIONS
         );
     }
 
@@ -119,8 +131,8 @@ public class Element {
      * Moves the mouse over the element.
      */
     public void hover() {
-        retry.retryAction(() -> new Actions(
-                DriverManager.getDriver())
+        retry.retryAction(
+                () -> new Actions(DriverManager.getDriver())
                         .moveToElement(getElement())
                         .perform()
         );
@@ -130,12 +142,16 @@ public class Element {
      * Scrolls the element into view.
      */
     public void scrollToView() {
-        retry.retryAction(() -> {
-            WebElement webElement = getElement();
-            ((JavascriptExecutor)
-                    DriverManager.getDriver())
-                    .executeScript("arguments[0].scrollIntoView({block: 'center'});", webElement);
-            });
+        retry.retryAction(
+                () -> {
+                    WebElement webElement = getElement();
+                    ((JavascriptExecutor) DriverManager.getDriver())
+                            .executeScript(
+                                    "arguments[0].scrollIntoView({block: 'center'});",
+                                    webElement
+                            );
+                }
+        );
     }
 
     /**
@@ -144,7 +160,9 @@ public class Element {
      * @return element text
      */
     public String getText() {
-        return retry.retryAction(() -> getElement().getText());
+        return retry.retryAction(
+                () -> getElement().getText()
+        );
     }
 
     /**
@@ -153,21 +171,13 @@ public class Element {
      * @return element value
      */
     public String getValue() {
-        return retry.retryAction(() -> getElement().getAttribute("value"));
+        return retry.retryAction(
+                () -> getElement().getAttribute("value")
+        );
     }
 
     /**
      * Converts a locator string into a Selenium By locator.
-     *
-     * <p>
-     * Supported formats:
-     * css=...
-     * id=...
-     * link=...
-     * xpath=...
-     * text=...
-     * name=...
-     * </p>
      *
      * @param locator locator string
      * @return Selenium By locator
@@ -196,28 +206,24 @@ public class Element {
     /**
      * Checks whether the element is displayed.
      *
-     * <p>
-     * This is an immediate state check and does not wait.
-     * </p>
-     *
      * @return true if the element exists and is displayed
      */
     public boolean isDisplayed() {
-        List<WebElement> elements = DriverManager.getDriver().findElements(locator);
+        List<WebElement> elements =
+                DriverManager.getDriver()
+                        .findElements(locator);
         return !elements.isEmpty() && elements.get(0).isDisplayed();
     }
 
     /**
      * Checks whether the element exists.
      *
-     * <p>
-     * This is an immediate state check and does not wait.
-     * </p>
-     *
      * @return true if at least one matching element exists
      */
     public boolean isExist() {
-        return !DriverManager.getDriver().findElements(locator).isEmpty();
+        return !DriverManager.getDriver()
+                .findElements(locator)
+                .isEmpty();
     }
 
     /**
