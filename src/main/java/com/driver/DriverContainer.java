@@ -3,6 +3,8 @@ package com.driver;
 import lombok.Getter;
 import org.openqa.selenium.WebDriver;
 
+import java.time.Duration;
+
 @Getter
 public class DriverContainer {
 
@@ -41,5 +43,23 @@ public class DriverContainer {
      */
     public WebDriver getDriver() {
         return driver;
+    }
+
+    /**
+     * Gets the default timeout.
+     *
+     * @return default timeout
+     */
+    public Duration getTimeout() {
+        return config.getTimeout();
+    }
+
+    /**
+     * Gets the polling interval.
+     *
+     * @return polling interval
+     */
+    public Duration getPollingInterval() {
+        return config.getPollingInterval();
     }
 }

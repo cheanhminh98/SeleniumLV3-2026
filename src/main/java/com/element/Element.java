@@ -1,158 +1,141 @@
 package com.element;
 
 import com.driver.DriverManager;
-import org.openqa.selenium.By;
-import org.openqa.selenium.JavascriptExecutor;
-import org.openqa.selenium.StaleElementReferenceException;
-import org.openqa.selenium.WebElement;
+import lombok.Getter;
+import org.openqa.selenium.*;
 import org.openqa.selenium.interactions.Actions;
+import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 public class Element {
 
-    private final String locator;
-    private final boolean alwaysFind;
-    private WebElement element;
+    private final By locator;
+
+    @Getter
+    private final ElementWait wait = new ElementWait(this);
+    private final ElementRetry retry = new ElementRetry(wait);
+
+    private static final List<Class<? extends Throwable>> INTERACTION_RETRY_EXCEPTIONS =
+            List.of(
+                    ElementClickInterceptedException.class,
+                    ElementNotInteractableException.class
+            );
+
+    private static final List<Class<? extends Throwable>> INPUT_RETRY_EXCEPTIONS =
+            List.of(
+                    ElementNotInteractableException.class
+            );
 
     /**
-     * Creates an Element using the specified locator.
+     * Creates an Element from a locator string.
      *
-     * @param locator element locator
+     * @param locator locator string
      */
     public Element(String locator) {
-        this(locator, false);
-    }
-
-    /**
-     * Creates an Element using the specified locator.
-     *
-     * @param locator element locator
-     * @param alwaysFind whether to find the element every time
-     */
-    public Element(String locator, boolean alwaysFind) {
         if (locator == null || locator.trim().isEmpty()) {
             throw new IllegalArgumentException("Locator cannot be null or empty.");
         }
-        this.locator = locator;
-        this.alwaysFind = alwaysFind;
+        this.locator = getByLocator(locator);
     }
 
     /**
-     * Creates an Element using the specified Selenium locator.
+     * Creates an Element from a Selenium By locator.
      *
-     * @param locator Selenium By locator
+     * @param locator Selenium locator
      */
     public Element(By locator) {
-        this(locator, false);
-    }
-
-    /**
-     * Creates an Element using the specified Selenium locator.
-     *
-     * @param locator Selenium By locator
-     * @param alwaysFind whether to find the element every time
-     */
-    public Element(By locator, boolean alwaysFind) {
         if (locator == null) {
             throw new IllegalArgumentException("Locator cannot be null.");
         }
-        this.locator = locator.toString();
-        this.alwaysFind = alwaysFind;
+        this.locator = locator;
     }
 
     /**
-     * Gets the web element.
+     * Gets the first matching WebElement.
      *
-     * @return web element
+     * @return matching WebElement
      */
     public WebElement getElement() {
-        if (alwaysFind || element == null) {
-            element = findElement();
-            return element;
-        }
-        try {
-            element.isEnabled();
-            return element;
-        } catch (StaleElementReferenceException e) {
-            element = findElement();
-            return element;
-        }
+        return DriverManager.getDriver().findElement(locator);
     }
 
     /**
-     * Finds the element using the configured locator.
+     * Gets all matching WebElements.
      *
-     * @return web element
-     */
-    private WebElement findElement() {
-        return DriverManager.getDriver().findElement(getByLocator());
-    }
-
-    /**
-     * Gets all elements matching the locator.
-     *
-     * @return list of web elements
+     * @return matching WebElements
      */
     public List<WebElement> getElements() {
-        return DriverManager.getDriver().findElements(getByLocator());
+        return DriverManager.getDriver().findElements(locator);
     }
 
     /**
-     * Sets the specified value to the element.
+     * Sets the value of the element.
      *
      * @param value value to enter
      */
     public void setValue(String value) {
-        WebElement webElement = getElement();
-        webElement.clear();
-        webElement.sendKeys(value);
+        retry.retryAction(() -> {
+            WebElement webElement = getElement();
+            webElement.clear();
+            webElement.sendKeys(value);
+            }, INPUT_RETRY_EXCEPTIONS
+        );
     }
 
     /**
-     * Enters the specified value without clearing
-     * the existing value.
+     * Sends a value to the element without clearing it first.
      *
      * @param value value to enter
      */
     public void enter(String value) {
-        getElement().sendKeys(value);
+        retry.retryAction(() -> getElement().sendKeys(value), INPUT_RETRY_EXCEPTIONS);
     }
 
     /**
      * Clicks the element.
      */
     public void click() {
-        getElement().click();
+        retry.retryAction(() -> getElement().click(), INTERACTION_RETRY_EXCEPTIONS);
     }
 
     /**
-     * Selects the element if it is not already selected.
+     * Checks the element if it is not already selected.
      */
     public void check() {
-        WebElement webElement = getElement();
-        if (!webElement.isSelected()) {
-            webElement.click();
-        }
+        retry.retryAction(() -> {
+            WebElement webElement = getElement();
+            if (!webElement.isSelected()) {
+                webElement.click();
+                 }
+            }, INTERACTION_RETRY_EXCEPTIONS
+        );
     }
 
     /**
      * Moves the mouse over the element.
      */
     public void hover() {
-        new Actions(DriverManager.getDriver()).moveToElement(getElement()).perform();
+        retry.retryAction(() -> new Actions(
+                DriverManager.getDriver())
+                        .moveToElement(getElement())
+                        .perform()
+        );
     }
 
     /**
      * Scrolls the element into view.
      */
     public void scrollToView() {
-        WebElement webElement = getElement();
-        ((JavascriptExecutor) DriverManager.getDriver()).executeScript(
-                        "arguments[0].scrollIntoView({block: 'center'});",
-                        webElement
-        );
+        retry.retryAction(() -> {
+            WebElement webElement = getElement();
+            ((JavascriptExecutor)
+                    DriverManager.getDriver())
+                    .executeScript("arguments[0].scrollIntoView({block: 'center'});", webElement);
+            });
     }
 
     /**
@@ -161,7 +144,7 @@ public class Element {
      * @return element text
      */
     public String getText() {
-        return getElement().getText();
+        return retry.retryAction(() -> getElement().getText());
     }
 
     /**
@@ -170,169 +153,26 @@ public class Element {
      * @return element value
      */
     public String getValue() {
-        return getElement().getAttribute("value");
+        return retry.retryAction(() -> getElement().getAttribute("value"));
     }
 
     /**
-     * Checks whether the element is displayed.
+     * Converts a locator string into a Selenium By locator.
      *
-     * @return true if displayed
-     */
-    public boolean isDisplayed() {
-        List<WebElement> elements = DriverManager.getDriver().findElements(getByLocator());
-        return !elements.isEmpty() && elements.get(0).isDisplayed();
-    }
-
-    /**
-     * Checks whether the element exists.
+     * <p>
+     * Supported formats:
+     * css=...
+     * id=...
+     * link=...
+     * xpath=...
+     * text=...
+     * name=...
+     * </p>
      *
-     * @return true if element exists
-     */
-    public boolean isExist() {
-        return !DriverManager.getDriver().findElements(getByLocator()).isEmpty();
-    }
-
-    /**
-     * Gets the wait handler for this element.
-     *
-     * @return ElementWait instance
-     */
-    public ElementWait getWait() {
-        return new ElementWait(getByLocator(), alwaysFind);
-    }
-
-    /**
-     * Waits until the element exists
-     * using the default timeout.
-     *
-     * @return existing web element
-     */
-    public WebElement waitForExist() {
-        return getWait().waitForExist();
-    }
-
-    /**
-     * Waits until the element exists
-     * using the specified timeout.
-     *
-     * @param timeout maximum time to wait
-     * @return existing web element
-     */
-    public WebElement waitForExist(Duration timeout) {
-        return getWait().waitForExist(timeout);
-    }
-
-    /**
-     * Waits until the element is visible
-     * using the default timeout.
-     *
-     * @return visible web element
-     */
-    public WebElement waitForVisible() {
-        return getWait().waitForVisible();
-    }
-
-    /**
-     * Waits until the element is visible
-     * using the specified timeout.
-     *
-     * @param timeout maximum time to wait
-     * @return visible web element
-     */
-    public WebElement waitForVisible(Duration timeout) {
-        return getWait().waitForVisible(timeout);
-    }
-
-    /**
-     * Waits until the element is clickable
-     * using the default timeout.
-     *
-     * @return clickable web element
-     */
-    public WebElement waitForClickable() {
-        return getWait().waitForClickable();
-    }
-
-    /**
-     * Waits until the element is clickable
-     * using the specified timeout.
-     *
-     * @param timeout maximum time to wait
-     * @return clickable web element
-     */
-    public WebElement waitForClickable(Duration timeout) {
-        return getWait().waitForClickable(timeout);
-    }
-
-    /**
-     * Waits until the element is enabled
-     * using the default timeout.
-     *
-     * @return enabled web element
-     */
-    public WebElement waitForEnabled() {
-        return getWait().waitForEnabled();
-    }
-
-    /**
-     * Waits until the element is enabled
-     * using the specified timeout.
-     *
-     * @param timeout maximum time to wait
-     * @return enabled web element
-     */
-    public WebElement waitForEnabled(Duration timeout) {
-        return getWait().waitForEnabled(timeout);
-    }
-
-    /**
-     * Waits until the element becomes invisible
-     * using the default timeout.
-     *
-     * @return true if the element becomes invisible
-     */
-    public boolean waitForInvisible() {
-        return getWait().waitForInvisible();
-    }
-
-    /**
-     * Waits until the element becomes invisible
-     * using the specified timeout.
-     *
-     * @param timeout maximum time to wait
-     * @return true if the element becomes invisible
-     */
-    public boolean waitForInvisible(Duration timeout) {
-        return getWait().waitForInvisible(timeout);
-    }
-
-    /**
-     * Waits until the element becomes disabled
-     * using the default timeout.
-     *
-     * @return true if the element becomes disabled
-     */
-    public boolean waitForDisabled() {
-        return getWait().waitForDisabled();
-    }
-
-    /**
-     * Waits until the element becomes disabled
-     * using the specified timeout.
-     *
-     * @param timeout maximum time to wait
-     * @return true if the element becomes disabled
-     */
-    public boolean waitForDisabled(Duration timeout) {
-        return getWait().waitForDisabled(timeout);
-    }
-
-    /**
-     * Converts the locator string into a Selenium By locator.
-     *
+     * @param locator locator string
      * @return Selenium By locator
      */
-    private By getByLocator() {
+    private static By getByLocator(String locator) {
         String body = locator.replaceAll("[\\w\\s]*=(.*)", "$1").trim();
         String type = locator.replaceAll("([\\w\\s]*)=.*", "$1").trim();
         switch (type) {
@@ -345,13 +185,107 @@ public class Element {
             case "xpath":
                 return By.xpath(body);
             case "text":
-                return By.xpath(
-                        String.format("//*[contains(text(), '%s')]", body)
-                );
+                return By.xpath(String.format("//*[contains(text(), '%s')]", body));
             case "name":
                 return By.name(body);
             default:
                 return By.xpath(locator);
         }
+    }
+
+    /**
+     * Checks whether the element is displayed.
+     *
+     * <p>
+     * This is an immediate state check and does not wait.
+     * </p>
+     *
+     * @return true if the element exists and is displayed
+     */
+    public boolean isDisplayed() {
+        List<WebElement> elements = DriverManager.getDriver().findElements(locator);
+        return !elements.isEmpty() && elements.get(0).isDisplayed();
+    }
+
+    /**
+     * Checks whether the element exists.
+     *
+     * <p>
+     * This is an immediate state check and does not wait.
+     * </p>
+     *
+     * @return true if at least one matching element exists
+     */
+    public boolean isExist() {
+        return !DriverManager.getDriver().findElements(locator).isEmpty();
+    }
+
+    /**
+     * Waits until the element exists.
+     *
+     * @return existing WebElement
+     */
+    public WebElement waitForExist() {
+        wait.until(ElementConditions.isExist());
+        return getElement();
+    }
+
+    /**
+     * Waits until the element is visible.
+     *
+     * @return visible WebElement
+     */
+    public WebElement waitForVisible() {
+        wait.until(ElementConditions.isVisible());
+        return getElement();
+    }
+
+    /**
+     * Waits until the element is clickable.
+     *
+     * @return clickable WebElement
+     */
+    public WebElement waitForClickable() {
+        wait.until(ElementConditions.isClickable());
+        return getElement();
+    }
+
+    /**
+     * Waits until the element is enabled.
+     *
+     * @return enabled WebElement
+     */
+    public WebElement waitForEnabled() {
+        wait.until(ElementConditions.isEnabled());
+        return getElement();
+    }
+
+    /**
+     * Waits until the element becomes invisible.
+     *
+     * @return true when the element is invisible
+     */
+    public boolean waitForInvisible() {
+        wait.until(ElementConditions.isInvisible());
+        return true;
+    }
+
+    /**
+     * Waits until the element becomes disabled.
+     *
+     * @return true when the element is disabled
+     */
+    public boolean waitForDisabled() {
+        wait.until(ElementConditions.isDisabled());
+        return true;
+    }
+
+    /**
+     * Waits until the specified condition is satisfied.
+     *
+     * @param condition condition to evaluate
+     */
+    public void waitUntil(ElementCondition condition) {
+        wait.until(condition);
     }
 }

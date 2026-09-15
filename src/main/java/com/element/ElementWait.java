@@ -1,239 +1,95 @@
 package com.element;
 
-import com.driver.DriverConfig;
 import com.driver.DriverManager;
-import org.openqa.selenium.By;
 import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.StaleElementReferenceException;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
-import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.FluentWait;
 
 import java.time.Duration;
+import java.util.List;
 import java.util.function.Function;
 
 public class ElementWait {
 
-    private final By locator;
-    private final boolean alwaysFind;
-    private WebElement element;
+    private final Element element;
 
     /**
-     * Creates an ElementWait.
+     * Creates an ElementWait using the timeout and polling interval
+     * configured in DriverManager.
      *
-     * @param locator Selenium locator
-     * @param alwaysFind whether to find the element every time
+     * @param element element to wait for
      */
-    public ElementWait(By locator, boolean alwaysFind) {
-        if (locator == null) {
-            throw new IllegalArgumentException("Locator cannot be null.");
+    ElementWait(Element element) {
+        if (element == null) {
+            throw new IllegalArgumentException("Element cannot be null.");
         }
-        this.locator = locator;
-        this.alwaysFind = alwaysFind;
+        this.element = element;
     }
 
     /**
-     * Gets a FluentWait using the default timeout.
+     * Waits until the specified Selenium condition is satisfied.
      *
-     * @return FluentWait instance
+     * @param condition Selenium wait condition
+     * @param <T> result type
+     * @return condition result
      */
-    private FluentWait<WebDriver> getWait() {
-        DriverConfig config = DriverManager.getConfig();
-        return getWait(config.getTimeout());
+    public <T> T until(Function<WebDriver, T> condition) {
+        if (condition == null) {
+            throw new IllegalArgumentException("Wait condition cannot be null.");
+        }
+        return createWait().until(condition);
     }
 
     /**
-     * Gets a FluentWait using the specified timeout.
+     * Waits until the specified Selenium condition is satisfied
+     * using additional retry exceptions.
      *
-     * @param timeout maximum time to wait
-     * @return FluentWait instance
+     * <p>
+     * The default retry exceptions are always ignored.
+     * Additional exceptions are added for this operation.
+     * </p>
+     *
+     * @param additionalExceptions additional exceptions to ignore
+     * @param condition Selenium wait condition
+     * @param <T> result type
+     * @return condition result
      */
-    private FluentWait<WebDriver> getWait(Duration timeout) {
-        if (timeout == null) {
-            throw new IllegalArgumentException("Timeout cannot be null.");
+    public <T> T until(List<Class<? extends Throwable>> additionalExceptions, Function<WebDriver, T> condition) {
+        if (additionalExceptions == null) {
+            throw new IllegalArgumentException("Additional exceptions cannot be null.");
         }
+        if (condition == null) {
+            throw new IllegalArgumentException("Wait condition cannot be null.");
+        }
+        FluentWait<WebDriver> wait = createWait();
+        additionalExceptions.forEach(wait::ignoring);
+        return wait.until(condition);
+    }
 
-        if (timeout.isNegative()) {
-            throw new IllegalArgumentException("Timeout cannot be negative.");
+    /**
+     * Waits until the specified ElementCondition is satisfied.
+     *
+     * @param condition element condition
+     */
+    public void until(ElementCondition condition) {
+        if (condition == null) {
+            throw new IllegalArgumentException("ElementCondition cannot be null.");
         }
-        DriverConfig config = DriverManager.getConfig();
+        createWait().until(driver -> condition.matches(element));
+    }
+
+    /**
+     * Creates a FluentWait using the timeout and polling interval
+     * configured in DriverManager.
+     *
+     * @return configured FluentWait
+     */
+    private FluentWait<WebDriver> createWait() {
         return new FluentWait<>(DriverManager.getDriver())
-                .withTimeout(timeout)
-                .pollingEvery(config.getPollingInterval())
+                .withTimeout(DriverManager.getTimeout())
+                .pollingEvery(DriverManager.getPollingInterval())
                 .ignoring(NoSuchElementException.class)
                 .ignoring(StaleElementReferenceException.class);
-    }
-
-    /**
-     * Waits for the specified condition using the default timeout.
-     *
-     * @param condition wait condition
-     * @param <T> result type
-     * @return condition result
-     */
-    private <T> T waitUntil(Function<WebDriver, T> condition) {
-        return getWait().until(condition);
-    }
-
-    /**
-     * Waits for the specified condition using the given timeout.
-     *
-     * @param timeout maximum time to wait
-     * @param condition wait condition
-     * @param <T> result type
-     * @return condition result
-     */
-    private <T> T waitUntil(Duration timeout, Function<WebDriver, T> condition) {
-        return getWait(timeout).until(condition);
-    }
-
-    /**
-     * Gets the current element.
-     *
-     * @return current web element
-     */
-    private WebElement getElement() {
-        if (alwaysFind || element == null) {
-            element = findElement();
-            return element;
-        }
-        try {
-            element.isEnabled();
-            return element;
-        } catch (StaleElementReferenceException e) {
-            element = findElement();
-            return element;
-        }
-    }
-
-    /**
-     * Finds the element using the locator.
-     *
-     * @return web element
-     */
-    private WebElement findElement() {
-        return DriverManager.getDriver().findElement(locator);
-    }
-
-    /**
-     * Waits until the element exists.
-     *
-     * @return existing web element
-     */
-    public WebElement waitForExist() {
-        return waitUntil(ExpectedConditions.presenceOfElementLocated(locator));
-    }
-
-    /**
-     * Waits until the element exists.
-     *
-     * @param timeout maximum time to wait
-     * @return existing web element
-     */
-    public WebElement waitForExist(Duration timeout) {
-        return waitUntil(timeout, ExpectedConditions.presenceOfElementLocated(locator));
-    }
-
-    /**
-     * Waits until the element is visible.
-     *
-     * @return visible web element
-     */
-    public WebElement waitForVisible() {
-        return waitUntil(ExpectedConditions.visibilityOfElementLocated(locator));
-    }
-
-    /**
-     * Waits until the element is visible.
-     *
-     * @param timeout maximum time to wait
-     * @return visible web element
-     */
-    public WebElement waitForVisible(Duration timeout) {
-        return waitUntil(timeout, ExpectedConditions.visibilityOfElementLocated(locator));
-    }
-
-    /**
-     * Waits until the element is clickable.
-     *
-     * @return clickable web element
-     */
-    public WebElement waitForClickable() {
-        return waitUntil(ExpectedConditions.elementToBeClickable(locator));
-    }
-
-    /**
-     * Waits until the element is clickable.
-     *
-     * @param timeout maximum time to wait
-     * @return clickable web element
-     */
-    public WebElement waitForClickable(Duration timeout) {
-        return waitUntil(timeout, ExpectedConditions.elementToBeClickable(locator));
-    }
-
-    /**
-     * Waits until the element is enabled.
-     *
-     * @return enabled web element
-     */
-    public WebElement waitForEnabled() {
-        return waitUntil(driver -> {
-            WebElement webElement = getElement();
-            return webElement.isEnabled() ? webElement : null;
-        });
-    }
-
-    /**
-     * Waits until the element is enabled.
-     *
-     * @param timeout maximum time to wait
-     * @return enabled web element
-     */
-    public WebElement waitForEnabled(Duration timeout) {
-        return waitUntil(timeout, driver -> {
-            WebElement webElement = getElement();
-                    return webElement.isEnabled() ? webElement : null;
-        });
-    }
-
-    /**
-     * Waits until the element becomes invisible.
-     *
-     * @return true if the element becomes invisible
-     */
-    public boolean waitForInvisible() {
-        return waitUntil(ExpectedConditions.invisibilityOfElementLocated(locator));
-    }
-
-    /**
-     * Waits until the element becomes invisible.
-     *
-     * @param timeout maximum time to wait
-     * @return true if the element becomes invisible
-     */
-    public boolean waitForInvisible(Duration timeout) {
-        return waitUntil(timeout, ExpectedConditions.invisibilityOfElementLocated(locator));
-    }
-
-    /**
-     * Waits until the element becomes disabled.
-     *
-     * @return true if the element becomes disabled
-     */
-    public boolean waitForDisabled() {
-        return waitUntil(driver -> !getElement().isEnabled());
-    }
-
-    /**
-     * Waits until the element becomes disabled.
-     *
-     * @param timeout maximum time to wait
-     * @return true if the element becomes disabled
-     */
-    public boolean waitForDisabled(Duration timeout) {
-        return waitUntil(timeout, driver -> !getElement().isEnabled()
-        );
     }
 }

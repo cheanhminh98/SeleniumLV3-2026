@@ -4,6 +4,8 @@ import org.openqa.selenium.OutputType;
 import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
 
+import java.time.Duration;
+
 public class DriverManager {
 
     private static final ThreadLocal<DriverContainer> driverContainer = new ThreadLocal<>();
@@ -51,6 +53,23 @@ public class DriverManager {
         return getDriverContainer().getConfig();
     }
 
+    /**
+     * Gets the default timeout for the current driver.
+     *
+     * @return default timeout
+     */
+    public static Duration getTimeout() {
+        return getDriverContainer().getTimeout();
+    }
+
+    /**
+     * Gets the polling interval for the current driver.
+     *
+     * @return polling interval
+     */
+    public static Duration getPollingInterval() {
+        return getDriverContainer().getPollingInterval();
+    }
 
     /**
      * Quits the WebDriver.
