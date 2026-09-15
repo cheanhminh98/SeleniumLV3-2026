@@ -7,6 +7,7 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.support.ui.FluentWait;
 
 import java.time.Duration;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
 
@@ -35,20 +36,12 @@ public class ElementWait {
      * @return condition result
      */
     public <T> T until(Function<WebDriver, T> condition) {
-        if (condition == null) {
-            throw new IllegalArgumentException("Wait condition cannot be null.");
-        }
-        return createWait().until(condition);
+        return until(Collections.emptyList(), condition);
     }
 
     /**
      * Waits until the specified Selenium condition is satisfied
      * using additional retry exceptions.
-     *
-     * <p>
-     * The default retry exceptions are always ignored.
-     * Additional exceptions are added for this operation.
-     * </p>
      *
      * @param additionalExceptions additional exceptions to ignore
      * @param condition Selenium wait condition
@@ -76,12 +69,11 @@ public class ElementWait {
         if (condition == null) {
             throw new IllegalArgumentException("ElementCondition cannot be null.");
         }
-        createWait().until(driver -> condition.matches(element));
+        until((Function<WebDriver, Boolean>) driver -> condition.matches(element));
     }
 
     /**
-     * Creates a FluentWait using the timeout and polling interval
-     * configured in DriverManager.
+     * Creates a FluentWait using the configured timeout and polling interval.
      *
      * @return configured FluentWait
      */
