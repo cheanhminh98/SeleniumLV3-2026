@@ -5,13 +5,15 @@ import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.StaleElementReferenceException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.support.ui.FluentWait;
+import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Function;
 
-public class ElementWait extends FluentWait<WebDriver> {
+public class ElementWait extends WebDriverWait {
 
     private final Element element;
 
@@ -22,20 +24,15 @@ public class ElementWait extends FluentWait<WebDriver> {
      * @param element element to wait for
      */
     ElementWait(Element element) {
-        super(DriverManager.getDriver());
-        if (element == null) {
-            throw new IllegalArgumentException("Element cannot be null.");
-        }
-        this.element = element;
-        withTimeout(DriverManager.getTimeout());
-        pollingEvery(DriverManager.getPollingInterval());
+        super(DriverManager.getDriver(), DriverManager.getTimeout(), DriverManager.getPollingInterval());
+        this.element = Objects.requireNonNull(element, "Element cannot be null.");
         ignoring(NoSuchElementException.class);
         ignoring(StaleElementReferenceException.class);
     }
 
     /**
      * Waits until the specified condition is satisfied
-     * using additional retry exceptions.
+     * using additional exceptions to ignore.
      *
      * @param additionalExceptions additional exceptions to ignore
      * @param condition wait condition
@@ -43,15 +40,10 @@ public class ElementWait extends FluentWait<WebDriver> {
      * @return condition result
      */
     public <T> T until(List<Class<? extends Throwable>> additionalExceptions, Function<WebDriver, T> condition) {
-        if (additionalExceptions == null) {
-            throw new IllegalArgumentException("Additional exceptions cannot be null.");
-        }
-        if (condition == null) {
-            throw new IllegalArgumentException("Wait condition cannot be null.");
-        }
-        ElementWait wait = new ElementWait(element);
-        additionalExceptions.forEach(wait::ignoring);
-        return wait.until(condition);
+        Objects.requireNonNull(additionalExceptions, "Additional exceptions cannot be null.");
+        Objects.requireNonNull(condition, "Wait condition cannot be null.");
+        additionalExceptions.forEach(this::ignoring);
+        return super.until(condition);
     }
 
     /**
@@ -60,9 +52,7 @@ public class ElementWait extends FluentWait<WebDriver> {
      * @param condition element condition
      */
     public void until(ElementCondition condition) {
-        if (condition == null) {
-            throw new IllegalArgumentException("ElementCondition cannot be null.");
-        }
-        super.until((Function<WebDriver, Boolean>) driver -> condition.matches(element));
+        Objects.requireNonNull(condition, "ElementCondition cannot be null.");
+        super.until(driver -> condition.matches(element));
     }
 }

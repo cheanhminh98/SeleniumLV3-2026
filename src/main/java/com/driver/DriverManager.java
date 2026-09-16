@@ -5,6 +5,7 @@ import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
 
 import java.time.Duration;
+import java.util.Objects;
 
 public class DriverManager {
 
@@ -16,9 +17,7 @@ public class DriverManager {
      * @param driverConfig driver configuration
      */
     public static void initialize(DriverConfig driverConfig) {
-        if (driverConfig == null) {
-            throw new IllegalArgumentException("DriverConfig cannot be null.");
-        }
+        Objects.requireNonNull(driverConfig, "DriverConfig cannot be null.");
         driverContainer.set(new DriverContainer(driverConfig));
     }
 

@@ -16,9 +16,9 @@ public class Element {
     private final By locator;
 
     @Getter
-    private final ElementWait wait = new ElementWait(this);
+    private final ElementWait wait;
 
-    private final ElementRetry retry = new ElementRetry(wait);
+    private final ElementRetry retry;
 
     private static final List<Class<? extends Throwable>>
             INTERACTION_RETRY_EXCEPTIONS = List.of(
@@ -32,18 +32,6 @@ public class Element {
     );
 
     /**
-     * Creates an Element from a locator string.
-     *
-     * @param locator locator string
-     */
-    public Element(String locator) {
-        if (locator == null || locator.trim().isEmpty()) {
-            throw new IllegalArgumentException("Locator cannot be null or empty.");
-        }
-        this.locator = getByLocator(locator);
-    }
-
-    /**
      * Creates an Element from a Selenium By locator.
      *
      * @param locator Selenium locator
@@ -53,6 +41,8 @@ public class Element {
             throw new IllegalArgumentException("Locator cannot be null.");
         }
         this.locator = locator;
+        this.wait = new ElementWait(this);
+        this.retry = new ElementRetry(wait);
     }
 
     /**
@@ -174,33 +164,6 @@ public class Element {
         return retry.retryAction(
                 () -> getElement().getAttribute("value")
         );
-    }
-
-    /**
-     * Converts a locator string into a Selenium By locator.
-     *
-     * @param locator locator string
-     * @return Selenium By locator
-     */
-    private static By getByLocator(String locator) {
-        String body = locator.replaceAll("[\\w\\s]*=(.*)", "$1").trim();
-        String type = locator.replaceAll("([\\w\\s]*)=.*", "$1").trim();
-        switch (type) {
-            case "css":
-                return By.cssSelector(body);
-            case "id":
-                return By.id(body);
-            case "link":
-                return By.linkText(body);
-            case "xpath":
-                return By.xpath(body);
-            case "text":
-                return By.xpath(String.format("//*[contains(text(), '%s')]", body));
-            case "name":
-                return By.name(body);
-            default:
-                return By.xpath(locator);
-        }
     }
 
     /**

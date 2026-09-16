@@ -4,6 +4,7 @@ import lombok.Getter;
 import org.openqa.selenium.WebDriver;
 
 import java.time.Duration;
+import java.util.Objects;
 
 @Getter
 public class DriverContainer {
@@ -17,32 +18,11 @@ public class DriverContainer {
      * @param config driver configuration
      */
     public DriverContainer(DriverConfig config) {
-        if (config == null) {
-            throw new IllegalArgumentException("DriverConfig cannot be null.");
-        }
+        Objects.requireNonNull(config, "DriverConfig cannot be null.");
         this.config = config;
         this.driver = BaseDriverFactory
                 .getDriver(config.getBrowser())
                 .createWebDriver(config);
-    }
-
-
-    /**
-     * Gets the driver configuration.
-     *
-     * @return driver configuration
-     */
-    public DriverConfig getConfig() {
-        return config;
-    }
-
-    /**
-     * Gets the WebDriver.
-     *
-     * @return WebDriver instance
-     */
-    public WebDriver getDriver() {
-        return driver;
     }
 
     /**
