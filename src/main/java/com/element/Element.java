@@ -108,7 +108,6 @@ public class Element {
         retry.retryAction(
                 () -> {
                     WebElement webElement = getElement();
-
                     if (!webElement.isSelected()) {
                         webElement.click();
                     }
@@ -192,61 +191,49 @@ public class Element {
     /**
      * Waits until the element exists.
      *
-     * @return existing WebElement
      */
-    public WebElement waitForExist() {
+    public void waitForExist() {
         wait.until(ElementConditions.isExist());
-        return getElement();
     }
 
     /**
      * Waits until the element is visible.
      *
-     * @return visible WebElement
      */
-    public WebElement waitForVisible() {
+    public void waitForVisible() {
         wait.until(ElementConditions.isVisible());
-        return getElement();
     }
 
     /**
      * Waits until the element is clickable.
      *
-     * @return clickable WebElement
      */
-    public WebElement waitForClickable() {
+    public void waitForClickable() {
         wait.until(ElementConditions.isClickable());
-        return getElement();
     }
 
     /**
      * Waits until the element is enabled.
      *
-     * @return enabled WebElement
      */
-    public WebElement waitForEnabled() {
+    public void waitForEnabled() {
         wait.until(ElementConditions.isEnabled());
-        return getElement();
     }
 
     /**
      * Waits until the element becomes invisible.
      *
-     * @return true when the element is invisible
      */
-    public boolean waitForInvisible() {
+    public void waitForInvisible() {
         wait.until(ElementConditions.isInvisible());
-        return true;
     }
 
     /**
      * Waits until the element becomes disabled.
      *
-     * @return true when the element is disabled
      */
-    public boolean waitForDisabled() {
+    public void waitForDisabled() {
         wait.until(ElementConditions.isDisabled());
-        return true;
     }
 
     /**

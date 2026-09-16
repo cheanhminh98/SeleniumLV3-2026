@@ -4,11 +4,9 @@ import org.openqa.selenium.WebDriver;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Supplier;
 
-/**
- * Handles retry operations for Element actions.
- */
 class ElementRetry {
 
     private final ElementWait wait;
@@ -19,9 +17,7 @@ class ElementRetry {
      * @param wait ElementWait used for retry operations
      */
     ElementRetry(ElementWait wait) {
-        if (wait == null) {
-            throw new IllegalArgumentException("ElementWait cannot be null.");
-        }
+        Objects.requireNonNull(wait, "ElementWait cannot be null.");
         this.wait = wait;
     }
 

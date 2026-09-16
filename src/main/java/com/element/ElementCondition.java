@@ -1,5 +1,7 @@
 package com.element;
 
+import java.util.Objects;
+
 @FunctionalInterface
 public interface ElementCondition {
 
@@ -19,9 +21,7 @@ public interface ElementCondition {
      *         to be satisfied
      */
     default ElementCondition and(ElementCondition other) {
-        if (other == null) {
-            throw new IllegalArgumentException("ElementCondition cannot be null.");
-        }
+        Objects.requireNonNull(other, "ElementCondition cannot be null.");
         return element -> matches(element) && other.matches(element);
     }
 
@@ -33,9 +33,7 @@ public interface ElementCondition {
      *         to be satisfied
      */
     default ElementCondition or(ElementCondition other) {
-        if (other == null) {
-            throw new IllegalArgumentException("ElementCondition cannot be null.");
-        }
+        Objects.requireNonNull(other, "ElementCondition cannot be null.");
         return element -> matches(element) || other.matches(element);
     }
 
