@@ -5,6 +5,8 @@ import org.openqa.selenium.WebDriver;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 class ElementRetry {
@@ -33,13 +35,21 @@ class ElementRetry {
     /**
      * Retries the specified action with additional exceptions.
      *
-     * @param action               action to execute
+     * @param action action to execute
      * @param additionalExceptions additional retry exceptions
      */
     void retryAction(Runnable action, List<Class<? extends Throwable>> additionalExceptions) {
-        wait.until(additionalExceptions, (WebDriver driver) -> {
-            action.run();
-            return true;
+        Objects.requireNonNull(action, "Action cannot be null.");
+        Objects.requireNonNull(additionalExceptions, "Additional exceptions cannot be null.");
+        wait.until((Function<WebDriver, Boolean>) driver -> {
+            try {action.run();
+                return true;
+            } catch (RuntimeException e) {
+                if (additionalExceptions.stream().noneMatch(type -> type.isInstance(e))) {
+                    return false;
+                }
+                throw e;
+            }
         });
     }
 
@@ -47,8 +57,8 @@ class ElementRetry {
      * Retries the specified action and returns its result.
      *
      * @param action action to execute
-     * @param <T>    result type
-     * @return action result
+     * @param <T> result type
+     * @return action result, including null
      */
     <T> T retryAction(Supplier<T> action) {
         return retryAction(action, Collections.emptyList());
@@ -57,12 +67,26 @@ class ElementRetry {
     /**
      * Retries the specified action with additional exceptions.
      *
-     * @param action               action to execute
+     * @param action action to execute
      * @param additionalExceptions additional retry exceptions
-     * @param <T>                  result type
-     * @return action result
+     * @param <T> result type
+     * @return action result, including null
      */
     <T> T retryAction(Supplier<T> action, List<Class<? extends Throwable>> additionalExceptions) {
-        return wait.until(additionalExceptions, (WebDriver driver) -> action.get());
+        Objects.requireNonNull(action, "Action cannot be null.");
+        Objects.requireNonNull(additionalExceptions, "Additional exceptions cannot be null.");
+        Optional<T> result = wait.until(
+                (Function<WebDriver, Optional<T>>) driver -> {
+                    try {
+                        return Optional.ofNullable(action.get());
+                    } catch (RuntimeException e) {
+                        if (additionalExceptions.stream()
+                                .anyMatch(type -> type.isInstance(e))) {
+                            return null;
+                        }
+                        throw e;
+                    }
+                });
+        return result.orElse(null);
     }
 }

@@ -1,8 +1,6 @@
 package com.element;
 
-import org.openqa.selenium.StaleElementReferenceException;
-
-import java.util.NoSuchElementException;
+import org.openqa.selenium.WebElement;
 
 public class ElementConditions {
 
@@ -30,13 +28,7 @@ public class ElementConditions {
      * @return element enabled condition
      */
     public static ElementCondition isEnabled() {
-        return element -> {
-            try {
-                return element.getElement().isEnabled();
-            } catch (NoSuchElementException | StaleElementReferenceException e) {
-                return false;
-            }
-        };
+        return element -> element.getElement().isEnabled();
     }
 
     /**
@@ -46,11 +38,8 @@ public class ElementConditions {
      */
     public static ElementCondition isClickable() {
         return element -> {
-            try {
-                return element.isDisplayed() && element.getElement().isEnabled();
-            } catch (NoSuchElementException | StaleElementReferenceException e) {
-                return false;
-            }
+            WebElement webElement = element.getElement();
+            return webElement.isDisplayed() && webElement.isEnabled();
         };
     }
 
@@ -60,13 +49,7 @@ public class ElementConditions {
      * @return element invisible condition
      */
     public static ElementCondition isInvisible() {
-        return element -> {
-            try {
-                return !element.isDisplayed();
-            } catch (NoSuchElementException | StaleElementReferenceException e) {
-                return true;
-            }
-        };
+        return element -> !element.isExist() || !element.isDisplayed();
     }
 
     /**
@@ -75,12 +58,6 @@ public class ElementConditions {
      * @return element disabled condition
      */
     public static ElementCondition isDisabled() {
-        return element -> {
-            try {
-                return !element.getElement().isEnabled();
-            } catch (NoSuchElementException | StaleElementReferenceException e) {
-                return false;
-            }
-        };
+        return element -> !element.getElement().isEnabled();
     }
 }
