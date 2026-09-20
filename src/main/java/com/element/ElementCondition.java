@@ -36,13 +36,4 @@ public interface ElementCondition {
         Objects.requireNonNull(other, "ElementCondition cannot be null.");
         return element -> matches(element) || other.matches(element);
     }
-
-    /**
-     * Negates this condition.
-     *
-     * @return negated condition
-     */
-    default ElementCondition negate() {
-        return element -> !matches(element);
-    }
 }

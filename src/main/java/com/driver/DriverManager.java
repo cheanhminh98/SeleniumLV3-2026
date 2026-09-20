@@ -74,13 +74,10 @@ public class DriverManager {
      * Quits the WebDriver.
      */
     public static void quitDriver() {
-        WebDriver webDriver = getDriver();
-        if (webDriver != null) {
-            try {
-                webDriver.quit();
-            } finally {
-                driverContainer.remove();
-            }
+        try {
+            getDriver().quit();
+        } finally {
+            driverContainer.remove();
         }
     }
 

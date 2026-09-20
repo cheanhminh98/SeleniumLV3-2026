@@ -1,12 +1,8 @@
 package com.element;
 
-import org.openqa.selenium.WebDriver;
-
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
-import java.util.function.Function;
 import java.util.function.Supplier;
 
 class ElementRetry {
@@ -36,57 +32,77 @@ class ElementRetry {
      * Retries the specified action with additional exceptions.
      *
      * @param action action to execute
-     * @param additionalExceptions additional retry exceptions
+     * @param additionalExceptions additional exceptions to ignore
      */
     void retryAction(Runnable action, List<Class<? extends Throwable>> additionalExceptions) {
         Objects.requireNonNull(action, "Action cannot be null.");
         Objects.requireNonNull(additionalExceptions, "Additional exceptions cannot be null.");
-        wait.until((Function<WebDriver, Boolean>) driver -> {
-            try {action.run();
-                return true;
-            } catch (RuntimeException e) {
-                if (additionalExceptions.stream().noneMatch(type -> type.isInstance(e))) {
-                    return false;
-                }
-                throw e;
-            }
-        });
+        wait.createWait(additionalExceptions)
+                .until(driver -> {
+                    action.run();
+                    return true;
+                });
     }
 
+
     /**
-     * Retries the specified action and returns its result.
+     * Retries an action until it executes successfully and returns
+     * its result.
+     * A null result is considered a valid successful result.
      *
      * @param action action to execute
      * @param <T> result type
      * @return action result, including null
      */
-    <T> T retryAction(Supplier<T> action) {
-        return retryAction(action, Collections.emptyList());
+    <T> T retryValue(Supplier<T> action) {
+        return retryValue(action, Collections.emptyList());
     }
 
     /**
-     * Retries the specified action with additional exceptions.
+     * Retries an action until it executes successfully and returns
+     * its result.
+     * The result is wrapped so that a successful action returning
+     * null is still treated as a successful WebDriverWait result.
      *
      * @param action action to execute
-     * @param additionalExceptions additional retry exceptions
+     * @param additionalExceptions additional exceptions to ignore
      * @param <T> result type
      * @return action result, including null
      */
-    <T> T retryAction(Supplier<T> action, List<Class<? extends Throwable>> additionalExceptions) {
+    <T> T retryValue(Supplier<T> action, List<Class<? extends Throwable>> additionalExceptions) {
         Objects.requireNonNull(action, "Action cannot be null.");
         Objects.requireNonNull(additionalExceptions, "Additional exceptions cannot be null.");
-        Optional<T> result = wait.until(
-                (Function<WebDriver, Optional<T>>) driver -> {
-                    try {
-                        return Optional.ofNullable(action.get());
-                    } catch (RuntimeException e) {
-                        if (additionalExceptions.stream()
-                                .anyMatch(type -> type.isInstance(e))) {
-                            return null;
-                        }
-                        throw e;
-                    }
-                });
-        return result.orElse(null);
+        RetryResult<T> result = wait
+                .createWait(additionalExceptions)
+                .until(driver -> new RetryResult<>(action.get()));
+        return result.getValue();
+    }
+
+    /**
+     * Wraps an action result so WebDriverWait can distinguish
+     * a successful null result from an unsuccessful wait condition.
+     *
+     * @param <T> result type
+     */
+    private static final class RetryResult<T> {
+        private final T value;
+
+        /**
+         * Creates a retry result.
+         *
+         * @param value action result, which may be null
+         */
+        private RetryResult(T value) {
+            this.value = value;
+        }
+
+        /**
+         * Gets the action result.
+         *
+         * @return action result, including null
+         */
+        private T getValue() {
+            return value;
+        }
     }
 }

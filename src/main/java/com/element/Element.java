@@ -1,7 +1,6 @@
 package com.element;
 
 import com.driver.DriverManager;
-import lombok.Getter;
 import org.openqa.selenium.By;
 import org.openqa.selenium.ElementClickInterceptedException;
 import org.openqa.selenium.ElementNotInteractableException;
@@ -10,14 +9,12 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.interactions.Actions;
 
 import java.util.List;
+import java.util.Objects;
 
 public class Element {
 
     private final By locator;
-
-    @Getter
     private final ElementWait wait;
-
     private final ElementRetry retry;
 
     private static final List<Class<? extends Throwable>>
@@ -37,9 +34,7 @@ public class Element {
      * @param locator Selenium locator
      */
     public Element(By locator) {
-        if (locator == null) {
-            throw new IllegalArgumentException("Locator cannot be null.");
-        }
+        Objects.requireNonNull(locator, "Locator cannot be null.");
         this.locator = locator;
         this.wait = new ElementWait(this);
         this.retry = new ElementRetry(wait);
@@ -149,7 +144,7 @@ public class Element {
      * @return element text
      */
     public String getText() {
-        return retry.retryAction(
+        return retry.retryValue(
                 () -> getElement().getText()
         );
     }
@@ -160,7 +155,7 @@ public class Element {
      * @return element value
      */
     public String getValue() {
-        return retry.retryAction(
+        return retry.retryValue(
                 () -> getElement().getAttribute("value")
         );
     }
@@ -193,7 +188,7 @@ public class Element {
      *
      */
     public void waitForExist() {
-        wait.until(ElementConditions.isExist());
+        wait.waitUntil(ElementConditions.isExist());
     }
 
     /**
@@ -201,7 +196,7 @@ public class Element {
      *
      */
     public void waitForVisible() {
-        wait.until(ElementConditions.isVisible());
+        wait.waitUntil(ElementConditions.isVisible());
     }
 
     /**
@@ -209,7 +204,7 @@ public class Element {
      *
      */
     public void waitForClickable() {
-        wait.until(ElementConditions.isClickable());
+        wait.waitUntil(ElementConditions.isClickable());
     }
 
     /**
@@ -217,7 +212,7 @@ public class Element {
      *
      */
     public void waitForEnabled() {
-        wait.until(ElementConditions.isEnabled());
+        wait.waitUntil(ElementConditions.isEnabled());
     }
 
     /**
@@ -225,7 +220,7 @@ public class Element {
      *
      */
     public void waitForInvisible() {
-        wait.until(ElementConditions.isInvisible());
+        wait.waitUntil(ElementConditions.isInvisible());
     }
 
     /**
@@ -233,7 +228,7 @@ public class Element {
      *
      */
     public void waitForDisabled() {
-        wait.until(ElementConditions.isDisabled());
+        wait.waitUntil(ElementConditions.isDisabled());
     }
 
     /**
@@ -242,6 +237,6 @@ public class Element {
      * @param condition condition to evaluate
      */
     public void waitUntil(ElementCondition condition) {
-        wait.until(condition);
+        wait.waitUntil(condition);
     }
 }
