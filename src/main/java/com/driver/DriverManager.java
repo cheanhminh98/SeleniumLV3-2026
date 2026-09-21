@@ -18,6 +18,11 @@ public class DriverManager {
      */
     public static void initialize(DriverConfig driverConfig) {
         Objects.requireNonNull(driverConfig, "DriverConfig cannot be null.");
+        if (driverContainer.get() != null) {
+            throw new IllegalStateException(
+                    "WebDriver has already been initialized for the current thread."
+            );
+        }
         driverContainer.set(new DriverContainer(driverConfig));
     }
 

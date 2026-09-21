@@ -14,8 +14,6 @@ import java.util.Objects;
 public class Element {
 
     private final By locator;
-    private final ElementWait wait;
-    private final ElementRetry retry;
 
     private static final List<Class<? extends Throwable>>
             INTERACTION_RETRY_EXCEPTIONS = List.of(
@@ -36,8 +34,24 @@ public class Element {
     public Element(By locator) {
         Objects.requireNonNull(locator, "Locator cannot be null.");
         this.locator = locator;
-        this.wait = new ElementWait(this);
-        this.retry = new ElementRetry(wait);
+    }
+
+    /**
+     * Creates a new ElementWait using the current WebDriver.
+     *
+     * @return ElementWait for the current driver
+     */
+    private ElementWait getWait() {
+        return new ElementWait(this);
+    }
+
+    /**
+     * Creates a new ElementRetry using the current ElementWait.
+     *
+     * @return ElementRetry for the current driver
+     */
+    private ElementRetry getRetry() {
+        return new ElementRetry(getWait());
     }
 
     /**
@@ -64,7 +78,7 @@ public class Element {
      * @param value value to enter
      */
     public void setValue(String value) {
-        retry.retryAction(
+        getRetry().retryAction(
                 () -> {
                     WebElement webElement = getElement();
                     webElement.clear();
@@ -80,7 +94,7 @@ public class Element {
      * @param value value to enter
      */
     public void enter(String value) {
-        retry.retryAction(
+        getRetry().retryAction(
                 () -> getElement().sendKeys(value),
                 INPUT_RETRY_EXCEPTIONS
         );
@@ -90,7 +104,7 @@ public class Element {
      * Clicks the element.
      */
     public void click() {
-        retry.retryAction(
+        getRetry().retryAction(
                 () -> getElement().click(),
                 INTERACTION_RETRY_EXCEPTIONS
         );
@@ -100,7 +114,7 @@ public class Element {
      * Checks the element if it is not already selected.
      */
     public void check() {
-        retry.retryAction(
+        getRetry().retryAction(
                 () -> {
                     WebElement webElement = getElement();
                     if (!webElement.isSelected()) {
@@ -115,7 +129,7 @@ public class Element {
      * Moves the mouse over the element.
      */
     public void hover() {
-        retry.retryAction(
+        getRetry().retryAction(
                 () -> new Actions(DriverManager.getDriver())
                         .moveToElement(getElement())
                         .perform()
@@ -126,7 +140,7 @@ public class Element {
      * Scrolls the element into view.
      */
     public void scrollToView() {
-        retry.retryAction(
+        getRetry().retryAction(
                 () -> {
                     WebElement webElement = getElement();
                     ((JavascriptExecutor) DriverManager.getDriver())
@@ -144,7 +158,7 @@ public class Element {
      * @return element text
      */
     public String getText() {
-        return retry.retryValue(
+        return getRetry().retryValue(
                 () -> getElement().getText()
         );
     }
@@ -155,7 +169,7 @@ public class Element {
      * @return element value
      */
     public String getValue() {
-        return retry.retryValue(
+        return getRetry().retryValue(
                 () -> getElement().getAttribute("value")
         );
     }
@@ -188,7 +202,7 @@ public class Element {
      *
      */
     public void waitForExist() {
-        wait.waitUntil(ElementConditions.isExist());
+        getWait().waitUntil(ElementConditions.isExist());
     }
 
     /**
@@ -196,7 +210,7 @@ public class Element {
      *
      */
     public void waitForVisible() {
-        wait.waitUntil(ElementConditions.isVisible());
+        getWait().waitUntil(ElementConditions.isVisible());
     }
 
     /**
@@ -204,7 +218,7 @@ public class Element {
      *
      */
     public void waitForClickable() {
-        wait.waitUntil(ElementConditions.isClickable());
+        getWait().waitUntil(ElementConditions.isClickable());
     }
 
     /**
@@ -212,7 +226,7 @@ public class Element {
      *
      */
     public void waitForEnabled() {
-        wait.waitUntil(ElementConditions.isEnabled());
+        getWait().waitUntil(ElementConditions.isEnabled());
     }
 
     /**
@@ -220,7 +234,7 @@ public class Element {
      *
      */
     public void waitForInvisible() {
-        wait.waitUntil(ElementConditions.isInvisible());
+        getWait().waitUntil(ElementConditions.isInvisible());
     }
 
     /**
@@ -228,7 +242,7 @@ public class Element {
      *
      */
     public void waitForDisabled() {
-        wait.waitUntil(ElementConditions.isDisabled());
+        getWait().waitUntil(ElementConditions.isDisabled());
     }
 
     /**
@@ -237,6 +251,6 @@ public class Element {
      * @param condition condition to evaluate
      */
     public void waitUntil(ElementCondition condition) {
-        wait.waitUntil(condition);
+        getWait().waitUntil(condition);
     }
 }
