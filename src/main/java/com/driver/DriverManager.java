@@ -4,9 +4,40 @@ import org.openqa.selenium.OutputType;
 import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
 
+import java.time.Duration;
+import java.util.Objects;
+
 public class DriverManager {
 
-    private static final ThreadLocal<WebDriver> driver = new ThreadLocal<>();
+    private static final ThreadLocal<DriverContainer> driverContainer = new ThreadLocal<>();
+
+    /**
+     * Initializes the driver for the current thread.
+     *
+     * @param driverConfig driver configuration
+     */
+    public static void initialize(DriverConfig driverConfig) {
+        Objects.requireNonNull(driverConfig, "DriverConfig cannot be null.");
+        if (driverContainer.get() != null) {
+            throw new IllegalStateException(
+                    "WebDriver has already been initialized for the current thread."
+            );
+        }
+        driverContainer.set(new DriverContainer(driverConfig));
+    }
+
+    /**
+     * Gets the driver container for the current thread.
+     *
+     * @return current DriverContainer
+     */
+    private static DriverContainer getDriverContainer() {
+        DriverContainer driver = driverContainer.get();
+        if (driver == null) {
+            throw new IllegalStateException("WebDriver has not been initialized.");
+        }
+        return driver;
+    }
 
     /**
      * Gets the current WebDriver.
@@ -14,29 +45,44 @@ public class DriverManager {
      * @return current WebDriver
      */
     public static WebDriver getDriver() {
-        return driver.get();
+        return getDriverContainer().getDriver();
     }
 
     /**
-     * Sets the WebDriver.
+     * Gets the current DriverConfig.
      *
-     * @param webDriver WebDriver instance
+     * @return current DriverConfig
      */
-    public static void setDriver(WebDriver webDriver) {
-        driver.set(webDriver);
+    public static DriverConfig getConfig() {
+        return getDriverContainer().getConfig();
+    }
+
+    /**
+     * Gets the default timeout for the current driver.
+     *
+     * @return default timeout
+     */
+    public static Duration getTimeout() {
+        return getDriverContainer().getTimeout();
+    }
+
+    /**
+     * Gets the polling interval for the current driver.
+     *
+     * @return polling interval
+     */
+    public static Duration getPollingInterval() {
+        return getDriverContainer().getPollingInterval();
     }
 
     /**
      * Quits the WebDriver.
      */
     public static void quitDriver() {
-        WebDriver webDriver = getDriver();
-        if (webDriver != null) {
-            try {
-                webDriver.quit();
-            } finally {
-                driver.remove();
-            }
+        try {
+            getDriver().quit();
+        } finally {
+            driverContainer.remove();
         }
     }
 
@@ -61,9 +107,6 @@ public class DriverManager {
      */
     public static <T> T getScreenshotAs(OutputType<T> outputType) {
         WebDriver webDriver = getDriver();
-        if (webDriver == null) {
-            throw new IllegalStateException("WebDriver has not been initialized.");
-        }
         if (!(webDriver instanceof TakesScreenshot)) {
             throw new IllegalStateException("WebDriver does not support screenshots.");
         }
