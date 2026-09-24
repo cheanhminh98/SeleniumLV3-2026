@@ -78,21 +78,6 @@
             <scope>test</scope>
         </dependency>
 
-        <!-- Source: https://mvnrepository.com/artifact/io.qameta.allure/allure-jupiter -->
-        <dependency>
-            <groupId>io.qameta.allure</groupId>
-            <artifactId>allure-jupiter</artifactId>
-            <version>${allureJUnit.version}</version>
-            <scope>test</scope>
-        </dependency>
-
-        <!-- Source: https://mvnrepository.com/artifact/io.qameta.allure/allure-testng -->
-        <dependency>
-            <groupId>io.qameta.allure</groupId>
-            <artifactId>allure-testng</artifactId>
-            <version>${allureTestNG.version}</version>
-            <scope>test</scope>
-        </dependency>
         <dependency>
             <groupId>io.qameta.allure</groupId>
             <artifactId>allure-java-commons</artifactId>

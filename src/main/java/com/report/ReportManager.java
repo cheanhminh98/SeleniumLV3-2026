@@ -1,5 +1,6 @@
 package com.report;
 
+import com.data.ReportType;
 import com.driver.DriverManager;
 import lombok.extern.slf4j.Slf4j;
 import org.openqa.selenium.WebDriver;
@@ -12,6 +13,38 @@ import java.util.function.Consumer;
 public class ReportManager {
 
     private static final List<Report> reports = new ArrayList<>();
+    private static boolean initialized = false;
+
+    /**
+     * Initializes the configured report.
+     *
+     * System property has higher priority than the report configuration.
+     * If no system property is provided, Allure is used by default.
+     */
+    public static synchronized void initialize() {
+        if (initialized) {
+            return;
+        }
+        String report = System.getProperty("report");
+        if (report == null || report.isBlank()) {
+            report = "allure";
+        }
+        ReportType reportType = ReportType.getReport(report);
+        try {
+            Report reportInstance = reportType
+                    .getReportClass()
+                    .getDeclaredConstructor()
+                    .newInstance();
+            register(reportInstance);
+            initialized = true;
+            log.info("Report initialized: {}", reportType);
+        } catch (ReflectiveOperationException e) {
+            throw new IllegalStateException(
+                    "Unable to initialize report: " + reportType, e
+            );
+        }
+    }
+
 
     /**
      * Registers a reporting implementation.

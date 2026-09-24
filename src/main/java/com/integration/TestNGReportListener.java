@@ -1,14 +1,17 @@
 package com.integration;
 
-import com.driver.DriverManager;
 import com.report.ReportManager;
 import lombok.extern.slf4j.Slf4j;
-import org.openqa.selenium.WebDriver;
+import org.testng.IExecutionListener;
 import org.testng.ITestListener;
 import org.testng.ITestResult;
 
 @Slf4j
-public class TestNGReportListener implements ITestListener {
+public class TestNGReportListener implements ITestListener, IExecutionListener {
+
+    public TestNGReportListener() {
+        ReportManager.initialize();
+    }
 
     /**
      * Handles test start.
@@ -43,8 +46,8 @@ public class TestNGReportListener implements ITestListener {
     public void onTestFailure(ITestResult result) {
         String testName = getTestName(result);
         log.error("{} test is failed.", testName);
-        ReportManager.fail(getFailureMessage(result));
         takeScreenshot(testName);
+        ReportManager.fail(getFailureMessage(result));
     }
 
     /**

@@ -22,6 +22,9 @@ public class ExtentReport implements Report {
         ExtentSparkReporter sparkReporter = new ExtentSparkReporter(reportPath);
         extentReports = new ExtentReports();
         extentReports.attachReporter(sparkReporter);
+        Runtime.getRuntime().addShutdownHook(
+                new Thread(this::flush)
+        );
     }
 
     /**
