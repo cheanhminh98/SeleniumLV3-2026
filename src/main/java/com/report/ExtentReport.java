@@ -7,8 +7,6 @@ import com.aventstack.extentreports.reporter.ExtentSparkReporter;
 import com.driver.DriverManager;
 import org.openqa.selenium.OutputType;
 
-import java.io.*;
-
 public class ExtentReport implements Report {
 
     private final ExtentReports extentReports;
@@ -38,6 +36,16 @@ public class ExtentReport implements Report {
             reportPath = "test-output/ExtentReport/index.html";
         }
         return reportPath;
+    }
+
+    /**
+     * Gets the report name.
+     *
+     * @return report name
+     */
+    @Override
+    public String getName() {
+        return "extent";
     }
 
     /**

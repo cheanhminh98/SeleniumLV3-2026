@@ -3,14 +3,25 @@ package com.integration;
 import com.report.ReportManager;
 import lombok.extern.slf4j.Slf4j;
 import org.testng.IExecutionListener;
+import org.testng.ITestContext;
 import org.testng.ITestListener;
 import org.testng.ITestResult;
 
 @Slf4j
 public class TestNGReportListener implements ITestListener, IExecutionListener {
 
-    public TestNGReportListener() {
-        ReportManager.initialize();
+    /**
+     * Initializes the configured report for the current TestNG test.
+     *
+     * @param context TestNG test context
+     */
+    @Override
+    public void onStart(ITestContext context) {
+        String report = context
+                .getCurrentXmlTest()
+                .getParameter("report");
+        ReportManager.initialize(report);
+        log.info("TestNG report configuration: {}", report);
     }
 
     /**

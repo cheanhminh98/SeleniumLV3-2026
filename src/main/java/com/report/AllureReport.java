@@ -48,6 +48,16 @@ public class AllureReport implements Report {
     }
 
     /**
+     * Gets the report name.
+     *
+     * @return report name
+     */
+    @Override
+    public String getName() {
+        return "allure";
+    }
+
+    /**
      * Starts an Allure test.
      *
      * @param testName test name
@@ -59,11 +69,6 @@ public class AllureReport implements Report {
                 .setUuid(uuid)
                 .setName(testName);
         testUuid.set(uuid);
-
-        log.info("ALLURE START: " + testName);
-        log.info("ALLURE UUID: " + uuid);
-        log.info("ALLURE RESULTS: " + getResultsDirectory());
-
         lifecycle.scheduleTestCase(uuid, testResult);
         lifecycle.startTestCase(uuid);
     }
@@ -133,7 +138,6 @@ public class AllureReport implements Report {
      */
     private void finishTest(Status status, StatusDetails statusDetails) {
         String uuid = testUuid.get();
-        log.info("ALLURE FINISH UUID: " + uuid);
         if (uuid == null) {
             return;
         }

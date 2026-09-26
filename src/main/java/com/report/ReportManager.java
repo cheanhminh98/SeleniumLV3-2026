@@ -1,12 +1,10 @@
 package com.report;
 
-import com.data.ReportType;
-import com.driver.DriverManager;
 import lombok.extern.slf4j.Slf4j;
-import org.openqa.selenium.WebDriver;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.ServiceLoader;
 import java.util.function.Consumer;
 
 @Slf4j
@@ -16,35 +14,61 @@ public class ReportManager {
     private static boolean initialized = false;
 
     /**
-     * Initializes the configured report.
-     *
-     * System property has higher priority than the report configuration.
+     * Initializes the report using the system property.
      * If no system property is provided, Allure is used by default.
      */
     public static synchronized void initialize() {
+        initialize(null);
+    }
+
+    /**
+     * Initializes the configured report.
+     * System property has higher priority than the report configuration.
+     * If no system property is provided, Allure is used by default.
+     */
+    public static synchronized void initialize(String configuredReport) {
         if (initialized) {
             return;
         }
-        String report = System.getProperty("report");
-        if (report == null || report.isBlank()) {
-            report = "allure";
-        }
-        ReportType reportType = ReportType.getReport(report);
-        try {
-            Report reportInstance = reportType
-                    .getReportClass()
-                    .getDeclaredConstructor()
-                    .newInstance();
-            register(reportInstance);
-            initialized = true;
-            log.info("Report initialized: {}", reportType);
-        } catch (ReflectiveOperationException e) {
-            throw new IllegalStateException(
-                    "Unable to initialize report: " + reportType, e
-            );
-        }
+        String report = validateReport(System.getProperty("report"), configuredReport);
+        Report selectedReport = findReport(report);
+        register(selectedReport);
+        initialized = true;
+        log.info("Report initialized: {}", selectedReport.getName());
     }
 
+    /**
+     * Validates the report configuration.
+     *
+     * @param configuredReport the configured report name
+     * @return the valid report name
+     */
+    private static String validateReport(String systemReport, String configuredReport) {
+        if (systemReport != null && !systemReport.isBlank()) {
+            return systemReport;
+        }
+        if (configuredReport != null && !configuredReport.isBlank()) {
+            return configuredReport;
+        }
+        return "allure";
+    }
+
+    /**
+     * Finds a report implementation using ServiceLoader.
+     *
+     * @param reportName report name
+     * @return matching report implementation
+     */
+    private static Report findReport(String reportName) {
+        String normalizedReport = reportName.trim().toLowerCase();
+        ServiceLoader<Report> loader = ServiceLoader.load(Report.class);
+        for (Report report : loader) {
+            if (report.getName().equalsIgnoreCase(normalizedReport)) {
+                return report;
+            }
+        }
+        throw new IllegalArgumentException("Unsupported report: " + reportName);
+    }
 
     /**
      * Registers a reporting implementation.

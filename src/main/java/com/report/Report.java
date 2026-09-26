@@ -3,6 +3,13 @@ package com.report;
 public interface Report {
 
     /**
+     * Gets the unique name of the report.
+     *
+     * @return report name
+     */
+    String getName();
+
+    /**
      * Starts a test.
      *
      * @param testName test name
