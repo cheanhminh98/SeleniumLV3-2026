@@ -1,11 +1,7 @@
 package com.element;
 
 import com.driver.DriverManager;
-import org.openqa.selenium.By;
-import org.openqa.selenium.ElementClickInterceptedException;
-import org.openqa.selenium.ElementNotInteractableException;
-import org.openqa.selenium.JavascriptExecutor;
-import org.openqa.selenium.WebElement;
+import org.openqa.selenium.*;
 import org.openqa.selenium.interactions.Actions;
 
 import java.util.List;
@@ -180,10 +176,12 @@ public class Element {
      * @return true if the element exists and is displayed
      */
     public boolean isDisplayed() {
-        List<WebElement> elements =
-                DriverManager.getDriver()
-                        .findElements(locator);
-        return !elements.isEmpty() && elements.get(0).isDisplayed();
+        try {
+            getWait().waitUntil(ElementConditions.isVisible());
+            return true;
+        } catch (TimeoutException e) {
+            return false;
+        }
     }
 
     /**
@@ -192,9 +190,12 @@ public class Element {
      * @return true if at least one matching element exists
      */
     public boolean isExist() {
-        return !DriverManager.getDriver()
-                .findElements(locator)
-                .isEmpty();
+        try {
+            getWait().waitUntil(ElementConditions.isExist());
+            return true;
+        } catch (TimeoutException e) {
+            return false;
+        }
     }
 
     /**

@@ -2,6 +2,8 @@ package com.element;
 
 import org.openqa.selenium.WebElement;
 
+import java.util.List;
+
 public class ElementConditions {
 
     /**
@@ -10,7 +12,7 @@ public class ElementConditions {
      * @return element existence condition
      */
     public static ElementCondition isExist() {
-        return Element::isExist;
+        return element -> !element.getElements().isEmpty();
     }
 
     /**
@@ -19,7 +21,11 @@ public class ElementConditions {
      * @return element visibility condition
      */
     public static ElementCondition isVisible() {
-        return Element::isDisplayed;
+        return element -> {
+            List<WebElement> elements = element.getElements();
+            return !elements.isEmpty()
+                    && elements.get(0).isDisplayed();
+        };
     }
 
     /**
@@ -28,7 +34,11 @@ public class ElementConditions {
      * @return element enabled condition
      */
     public static ElementCondition isEnabled() {
-        return element -> element.getElement().isEnabled();
+        return element -> {
+            List<WebElement> elements = element.getElements();
+            return !elements.isEmpty()
+                    && elements.get(0).isEnabled();
+        };
     }
 
     /**
@@ -38,8 +48,13 @@ public class ElementConditions {
      */
     public static ElementCondition isClickable() {
         return element -> {
-            WebElement webElement = element.getElement();
-            return webElement.isDisplayed() && webElement.isEnabled();
+            List<WebElement> elements = element.getElements();
+            if (elements.isEmpty()) {
+                return false;
+            }
+            WebElement webElement = elements.get(0);
+            return webElement.isDisplayed()
+                    && webElement.isEnabled();
         };
     }
 
@@ -49,7 +64,11 @@ public class ElementConditions {
      * @return element invisible condition
      */
     public static ElementCondition isInvisible() {
-        return element -> !element.isExist() || !element.isDisplayed();
+        return element -> {
+            List<WebElement> elements = element.getElements();
+            return elements.isEmpty()
+                    || !elements.get(0).isDisplayed();
+        };
     }
 
     /**
@@ -58,6 +77,10 @@ public class ElementConditions {
      * @return element disabled condition
      */
     public static ElementCondition isDisabled() {
-        return element -> !element.getElement().isEnabled();
+        return element -> {
+            List<WebElement> elements = element.getElements();
+            return !elements.isEmpty()
+                    && !elements.get(0).isEnabled();
+        };
     }
 }
