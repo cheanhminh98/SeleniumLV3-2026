@@ -1,9 +1,13 @@
 package com.report;
 
+import com.constant.Constant;
 import lombok.extern.slf4j.Slf4j;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 import java.util.ServiceLoader;
 import java.util.function.Consumer;
 
@@ -13,24 +17,20 @@ public class ReportManager {
     private static final List<Report> reports = new ArrayList<>();
     private static boolean initialized = false;
 
-    /**
-     * Initializes the report using the system property.
-     * If no system property is provided, Allure is used by default.
-     */
-    public static synchronized void initialize() {
-        initialize(null);
-    }
+    private static final String REPORT_PROPERTY = "report";
+    private static final String DEFAULT_REPORT = "allure";
+
 
     /**
      * Initializes the configured report.
      * System property has higher priority than the report configuration.
      * If no system property is provided, Allure is used by default.
      */
-    public static synchronized void initialize(String configuredReport) {
+    public static synchronized void initialize() {
         if (initialized) {
             return;
         }
-        String report = validateReport(System.getProperty("report"), configuredReport);
+        String report = getConfiguredReport();
         Report selectedReport = findReport(report);
         register(selectedReport);
         initialized = true;
@@ -38,19 +38,43 @@ public class ReportManager {
     }
 
     /**
-     * Validates the report configuration.
+     * Gets the configured report.
+     * System property has higher priority than the properties file.
      *
-     * @param configuredReport the configured report name
-     * @return the valid report name
+     * @return configured report name
      */
-    private static String validateReport(String systemReport, String configuredReport) {
+    private static String getConfiguredReport() {
+        String systemReport = System.getProperty(REPORT_PROPERTY);
         if (systemReport != null && !systemReport.isBlank()) {
-            return systemReport;
+            return systemReport.trim();
         }
+        String configuredReport = loadReportProperty();
         if (configuredReport != null && !configuredReport.isBlank()) {
-            return configuredReport;
+            return configuredReport.trim();
         }
-        return "allure";
+        return DEFAULT_REPORT;
+    }
+
+    /**
+     * Loads the report configuration from the properties file.
+     *
+     * @return configured report name, or null if not configured
+     */
+    private static String loadReportProperty() {
+        Properties properties = new Properties();
+        try (InputStream inputStream =
+                     ReportManager.class
+                             .getClassLoader()
+                             .getResourceAsStream(Constant.REPORT_CONFIG_PATH)) {
+
+            if (inputStream == null) {
+                return null;
+            }
+            properties.load(inputStream);
+            return properties.getProperty(REPORT_PROPERTY);
+        } catch (IOException e) {
+            throw new RuntimeException("Cannot load report configuration.", e);
+        }
     }
 
     /**
@@ -158,6 +182,26 @@ public class ReportManager {
                         "Report execution failed for {}: {}",
                         report.getClass().getSimpleName(),
                         e.getMessage()
+                );
+            }
+        }
+    }
+
+    /**
+     * Flushes all reports that support report finalization.
+     */
+    public static void flush() {
+        for (Report report : reports) {
+            if (!(report instanceof FlushableReport)) {
+                continue;
+            }
+            try {
+                ((FlushableReport) report).flush();
+            } catch (Exception e) {
+                log.error("Unable to flush report {}: {}",
+                        report.getName(),
+                        e.getMessage(),
+                        e
                 );
             }
         }

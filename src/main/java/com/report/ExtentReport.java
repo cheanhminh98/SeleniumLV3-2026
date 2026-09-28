@@ -7,7 +7,7 @@ import com.aventstack.extentreports.reporter.ExtentSparkReporter;
 import com.driver.DriverManager;
 import org.openqa.selenium.OutputType;
 
-public class ExtentReport implements Report {
+public class ExtentReport implements Report, FlushableReport {
 
     private final ExtentReports extentReports;
     private final ThreadLocal<ExtentTest> extentTest = new ThreadLocal<>();
@@ -20,9 +20,6 @@ public class ExtentReport implements Report {
         ExtentSparkReporter sparkReporter = new ExtentSparkReporter(reportPath);
         extentReports = new ExtentReports();
         extentReports.attachReporter(sparkReporter);
-        Runtime.getRuntime().addShutdownHook(
-                new Thread(this::flush)
-        );
     }
 
     /**
@@ -120,6 +117,7 @@ public class ExtentReport implements Report {
     /**
      * Flushes ExtentReports.
      */
+    @Override
     public void flush() {
         extentReports.flush();
     }
