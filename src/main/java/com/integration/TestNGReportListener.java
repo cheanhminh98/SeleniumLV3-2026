@@ -17,12 +17,6 @@ public class TestNGReportListener implements ITestListener, IExecutionListener {
      */
     @Override
     public void onStart(ITestContext context) {
-//        String report = context
-//                .getCurrentXmlTest()
-//                .getParameter("report");
-//        ReportManager.initialize(report);
-//        log.info("TestNG report configuration: {}", report);
-
         ReportManager.initialize();
         log.info("TestNG report initialized.");
     }
