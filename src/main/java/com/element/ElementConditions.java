@@ -12,7 +12,7 @@ public class ElementConditions {
      * @return element existence condition
      */
     public static ElementCondition isExist() {
-        return element -> !element.getElements().isEmpty();
+        return Element::isExist;
     }
 
     /**
@@ -21,11 +21,7 @@ public class ElementConditions {
      * @return element visibility condition
      */
     public static ElementCondition isVisible() {
-        return element -> {
-            List<WebElement> elements = element.getElements();
-            return !elements.isEmpty()
-                    && elements.get(0).isDisplayed();
-        };
+        return Element::isDisplayed;
     }
 
     /**
@@ -34,11 +30,7 @@ public class ElementConditions {
      * @return element enabled condition
      */
     public static ElementCondition isEnabled() {
-        return element -> {
-            List<WebElement> elements = element.getElements();
-            return !elements.isEmpty()
-                    && elements.get(0).isEnabled();
-        };
+        return element -> element.getElement().isEnabled();
     }
 
     /**
@@ -48,13 +40,8 @@ public class ElementConditions {
      */
     public static ElementCondition isClickable() {
         return element -> {
-            List<WebElement> elements = element.getElements();
-            if (elements.isEmpty()) {
-                return false;
-            }
-            WebElement webElement = elements.get(0);
-            return webElement.isDisplayed()
-                    && webElement.isEnabled();
+            WebElement webElement = element.getElement();
+            return webElement.isDisplayed() && webElement.isEnabled();
         };
     }
 
@@ -64,11 +51,7 @@ public class ElementConditions {
      * @return element invisible condition
      */
     public static ElementCondition isInvisible() {
-        return element -> {
-            List<WebElement> elements = element.getElements();
-            return elements.isEmpty()
-                    || !elements.get(0).isDisplayed();
-        };
+        return element -> !element.isExist() || !element.isDisplayed();
     }
 
     /**
@@ -77,10 +60,6 @@ public class ElementConditions {
      * @return element disabled condition
      */
     public static ElementCondition isDisabled() {
-        return element -> {
-            List<WebElement> elements = element.getElements();
-            return !elements.isEmpty()
-                    && !elements.get(0).isEnabled();
-        };
+        return element -> !element.getElement().isEnabled();
     }
 }
