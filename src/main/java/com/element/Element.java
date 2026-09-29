@@ -176,12 +176,8 @@ public class Element {
      * @return true if the element exists and is displayed
      */
     public boolean isDisplayed() {
-        try {
-            getWait().waitUntil(ElementConditions.isVisible());
-            return true;
-        } catch (TimeoutException e) {
-            return false;
-        }
+        List<WebElement> elements = DriverManager.getDriver().findElements(locator);
+        return !elements.isEmpty() && elements.get(0).isDisplayed();
     }
 
     /**
@@ -190,12 +186,9 @@ public class Element {
      * @return true if at least one matching element exists
      */
     public boolean isExist() {
-        try {
-            getWait().waitUntil(ElementConditions.isExist());
-            return true;
-        } catch (TimeoutException e) {
-            return false;
-        }
+        return !DriverManager.getDriver()
+                .findElements(locator)
+                .isEmpty();
     }
 
     /**

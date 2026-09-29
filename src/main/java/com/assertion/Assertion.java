@@ -8,90 +8,45 @@ import java.util.stream.Collectors;
 
 public class Assertion {
 
-    private static final ThreadLocal<List<AssertionError>> FAILURES = ThreadLocal.withInitial(ArrayList::new);
+    private static final HardAssertion HARD_ASSERTION = new HardAssertion();
+
+    private static final ThreadLocal<SoftAssertion> SOFT_ASSERTION = ThreadLocal.withInitial(SoftAssertion::new);
 
     /**
-     * Asserts that the condition is true.
+     * Gets the hard assertion instance.
      *
-     * @param condition condition to verify
-     * @param message   assertion message
+     * @return hard assertion
      */
-    public static void assertTrue(boolean condition, String message) {
-        if (!condition) {
-            addFailure(new AssertionError(buildMessage(message, "Expected condition to be true.")));
-        }
+    public static HardAssertion hard() {
+        return HARD_ASSERTION;
     }
 
     /**
-     * Asserts that the condition is false.
+     * Gets the soft assertion instance for the current thread.
      *
-     * @param condition condition to verify
-     * @param message   assertion message
+     * @return soft assertion
      */
-    public static void assertFalse(boolean condition, String message) {
-        if (condition) {
-            addFailure(new AssertionError(buildMessage(message, "Expected condition to be false.")));
-        }
+    public static SoftAssertion soft() {
+        return SOFT_ASSERTION.get();
     }
 
     /**
-     * Asserts that actual and expected values are equal.
-     *
-     * @param actual   actual value
-     * @param expected expected value
-     * @param message  assertion message
-     * @param <T>      value type
-     */
-    public static <T> void assertEquals(T actual, T expected, String message) {
-        if (!Objects.equals(actual, expected)) {
-            addFailure(new AssertionError(buildMessage(message, "Expected: <" + expected + ">, but was: <" + actual + ">.")));
-        }
-    }
-
-    /**
-     * Asserts that actual and unexpected values are different.
-     *
-     * @param actual     actual value
-     * @param unexpected unexpected value
-     * @param message    assertion message
-     * @param <T>        value type
-     */
-    public static <T> void assertNotEquals(T actual, T unexpected, String message) {
-        if (Objects.equals(actual, unexpected)) {
-            addFailure(new AssertionError(buildMessage(message, "Expected value to differ from <" + unexpected + ">.")));
-        }
-    }
-
-    /**
-     * Reports all collected assertion failures.
-     *
-     * <p>The failures are aggregated into one AssertionError.
-     * The failure list is cleared after reporting.</p>
+     * Verifies all soft assertions for the current test
+     * and clears the current thread state.
      */
     public static void assertAll() {
-        List<AssertionError> failures = FAILURES.get();
         try {
-            if (failures.isEmpty()) {
-                return;
-            }
-            String message = failures.stream().map(AssertionError::getMessage)
-                    .collect(Collectors.joining(System.lineSeparator(),
-                            "The following assertions failed:" + System.lineSeparator(), ""));
-            AssertionError error = new AssertionError(message);
-            failures.forEach(error::addSuppressed);
-            throw error;
+            SOFT_ASSERTION.get().assertAll();
         } finally {
-            FAILURES.remove();
+            SOFT_ASSERTION.remove();
         }
     }
 
     /**
-     * Adds an assertion failure for the current thread.
-     *
-     * @param failure assertion failure
+     * Clears the soft assertion state for the current thread.
      */
-    private static void addFailure(AssertionError failure) {
-        FAILURES.get().add(failure);
+    public static void clear() {
+        SOFT_ASSERTION.remove();
     }
 
     /**
@@ -101,7 +56,7 @@ public class Assertion {
      * @param defaultMessage default assertion message
      * @return combined message
      */
-    private static String buildMessage(String message, String defaultMessage) {
+    static String buildMessage(String message, String defaultMessage) {
         if (message == null || message.isBlank()) {
             return defaultMessage;
         }
