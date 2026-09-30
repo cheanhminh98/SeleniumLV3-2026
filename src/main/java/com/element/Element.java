@@ -191,10 +191,10 @@ public class Element {
      */
     public boolean isDisplayed() {
         try {
-            return DriverManager.getDriver()
-                    .findElement(locator)
-                    .isDisplayed();
-        } catch (NoSuchElementException | StaleElementReferenceException e) {
+            return getRetry().retryValue(
+                    () -> getElement().isDisplayed()
+            );
+        } catch (NoSuchElementException e) {
             return false;
         }
     }
@@ -216,13 +216,9 @@ public class Element {
      * @return true if the element is selected; otherwise false
      */
     public boolean isChecked() {
-        try {
-            return DriverManager.getDriver()
-                    .findElement(locator)
-                    .isSelected();
-        } catch (StaleElementReferenceException e) {
-            return false;
-        }
+        return getRetry().retryValue(
+                () -> getElement().isSelected()
+        );
     }
 
     /**
