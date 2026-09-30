@@ -171,13 +171,18 @@ public class Element {
     }
 
     /**
-     * Checks whether the element is displayed.
+     * Checks whether the first matching element is displayed.
      *
-     * @return true if the element exists and is displayed
+     * @return true if the element exists and is displayed; otherwise false
      */
     public boolean isDisplayed() {
-        List<WebElement> elements = DriverManager.getDriver().findElements(locator);
-        return !elements.isEmpty() && elements.get(0).isDisplayed();
+        try {
+            return DriverManager.getDriver()
+                    .findElement(locator)
+                    .isDisplayed();
+        } catch (NoSuchElementException | StaleElementReferenceException e) {
+            return false;
+        }
     }
 
     /**
@@ -189,6 +194,21 @@ public class Element {
         return !DriverManager.getDriver()
                 .findElements(locator)
                 .isEmpty();
+    }
+
+    /**
+     * Checks whether the first matching element is selected.
+     *
+     * @return true if the element is selected; otherwise false
+     */
+    public boolean isChecked() {
+        try {
+            return DriverManager.getDriver()
+                    .findElement(locator)
+                    .isSelected();
+        } catch (StaleElementReferenceException e) {
+            return false;
+        }
     }
 
     /**
