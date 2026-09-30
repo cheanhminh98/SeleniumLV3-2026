@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.Supplier;
 
-public class AssertRetry {
+public final class AssertRetry {
 
     private static final List<Class<? extends Throwable>> COMMON_RETRY_EXCEPTIONS = List.of(StaleElementReferenceException.class);
 
@@ -35,9 +35,10 @@ public class AssertRetry {
     }
 
     /**
-     * Retries until the supplied value equals the expected value.
+     * Retries until the supplied actual value equals
+     * the expected value.
      *
-     * @param actualSupplier supplier for the actual value
+     * @param actualSupplier supplier used to obtain the actual value
      * @param expected       expected value
      * @param <T>            value type
      */
@@ -47,9 +48,10 @@ public class AssertRetry {
     }
 
     /**
-     * Retries until the supplied value differs from the unexpected value.
+     * Retries until the supplied actual value differs
+     * from the unexpected value.
      *
-     * @param actualSupplier supplier for the actual value
+     * @param actualSupplier supplier used to obtain the actual value
      * @param unexpected     unexpected value
      * @param <T>            value type
      */

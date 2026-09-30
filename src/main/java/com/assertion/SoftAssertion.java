@@ -11,11 +11,7 @@ public class SoftAssertion {
      * @param condition assertion condition
      */
     public void assertTrue(AssertionCondition condition) {
-        try {
-            AssertRetry.assertTrue(condition);
-        } catch (Exception e) {
-            Assertion.addFailure(new AssertionError(Assertion.buildMessage(null, "Expected condition to be true."), e));
-        }
+        assertTrue(condition, null);
     }
 
     /**
@@ -28,7 +24,8 @@ public class SoftAssertion {
         try {
             AssertRetry.assertTrue(condition);
         } catch (Exception e) {
-            Assertion.addFailure(new AssertionError(Assertion.buildMessage(message, "Expected condition to be true."), e));
+            Assertion.addFailure(new AssertionError(Assertion.buildMessage(message,
+                    "Expected condition to be true.", e), e));
         }
     }
 
@@ -38,11 +35,7 @@ public class SoftAssertion {
      * @param condition assertion condition
      */
     public void assertFalse(AssertionCondition condition) {
-        try {
-            AssertRetry.assertFalse(condition);
-        } catch (Exception e) {
-            Assertion.addFailure(new AssertionError(Assertion.buildMessage(null, "Expected condition to be false."), e));
-        }
+        assertFalse(condition, null);
     }
 
     /**
@@ -55,7 +48,8 @@ public class SoftAssertion {
         try {
             AssertRetry.assertFalse(condition);
         } catch (Exception e) {
-            Assertion.addFailure(new AssertionError(Assertion.buildMessage(message, "Expected condition to be false."), e));
+            Assertion.addFailure(new AssertionError(Assertion.buildMessage(message,
+                    "Expected condition to be false.", e), e));
         }
     }
 
@@ -68,17 +62,16 @@ public class SoftAssertion {
      * @param <T>      value type
      */
     public <T> void assertEquals(T actual, T expected, String message) {
-
         if (!Objects.equals(actual, expected)) {
             Assertion.addFailure(new AssertionError(Assertion.buildMessage(message, "Expected: <" + expected + ">, but was: <" + actual + ">.")));
         }
     }
 
     /**
-     * Verifies that the supplied actual value eventually equals
+     * Retries until the supplied actual value equals
      * the expected value.
      *
-     * @param actualSupplier supplier for the actual value
+     * @param actualSupplier supplier used to obtain the actual value
      * @param expected       expected value
      * @param message        custom assertion message
      * @param <T>            value type
@@ -88,7 +81,8 @@ public class SoftAssertion {
         try {
             AssertRetry.assertEquals(actualSupplier, expected);
         } catch (Exception e) {
-            Assertion.addFailure(new AssertionError(Assertion.buildMessage(message, "Expected: <" + expected + ">."), e));
+            Assertion.addFailure(new AssertionError(Assertion.buildMessage(message,
+                    "Expected: <" + expected + ">.", e), e));
         }
     }
 
@@ -101,27 +95,27 @@ public class SoftAssertion {
      * @param <T>        value type
      */
     public <T> void assertNotEquals(T actual, T unexpected, String message) {
-
         if (Objects.equals(actual, unexpected)) {
-            Assertion.addFailure(new AssertionError(Assertion.buildMessage(message, "Values should not be equal: <" + unexpected + ">.")));
+            Assertion.addFailure(new AssertionError(Assertion.buildMessage(message,
+                    "Values should not be equal: <" + unexpected + ">.")));
         }
     }
 
     /**
-     * Verifies that the supplied actual value eventually differs
+     * Retries until the supplied actual value differs
      * from the unexpected value.
      *
-     * @param actualSupplier supplier for the actual value
+     * @param actualSupplier supplier used to obtain the actual value
      * @param unexpected     unexpected value
      * @param message        custom assertion message
      * @param <T>            value type
      */
     public <T> void assertNotEquals(Supplier<T> actualSupplier, T unexpected, String message) {
-
         try {
             AssertRetry.assertNotEquals(actualSupplier, unexpected);
         } catch (Exception e) {
-            Assertion.addFailure(new AssertionError(Assertion.buildMessage(message, "Values should not be equal: <" + unexpected + ">."), e));
+            Assertion.addFailure(new AssertionError(Assertion.buildMessage(message,
+                    "Values should not be equal: <" + unexpected + ">.", e)));
         }
     }
 

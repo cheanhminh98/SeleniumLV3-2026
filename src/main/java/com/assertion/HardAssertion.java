@@ -1,6 +1,7 @@
 package com.assertion;
 
 import java.util.Objects;
+import java.util.function.Supplier;
 
 public class HardAssertion {
 
@@ -23,7 +24,8 @@ public class HardAssertion {
         try {
             AssertRetry.assertTrue(condition);
         } catch (Exception e) {
-            throw new AssertionError(Assertion.buildMessage(message, "Expected condition to be true.", e), e);
+            throw new AssertionError(Assertion.buildMessage(message,
+                    "Expected condition to be true.", e), e);
         }
     }
 
@@ -43,10 +45,12 @@ public class HardAssertion {
      * @param message   custom assertion message
      */
     public void assertFalse(AssertionCondition condition, String message) {
+
         try {
             AssertRetry.assertFalse(condition);
         } catch (Exception e) {
-            throw new AssertionError(Assertion.buildMessage(message, "Expected condition to be false.", e), e);
+            throw new AssertionError(Assertion.buildMessage(message,
+                    "Expected condition to be false.", e), e);
         }
     }
 
@@ -60,7 +64,25 @@ public class HardAssertion {
      */
     public <T> void assertEquals(T actual, T expected, String message) {
         if (!Objects.equals(actual, expected)) {
-            throw new AssertionError(Assertion.buildMessage(message, "Expected: <" + expected + ">, but was: <" + actual + ">."));
+            throw new AssertionError(Assertion.buildMessage(message,
+                    "Expected: <" + expected + ">, but was: <" + actual + ">."));
+        }
+    }
+
+    /**
+     * Retries until the supplied actual value equals
+     * the expected value.
+     *
+     * @param actualSupplier supplier used to obtain the actual value
+     * @param expected       expected value
+     * @param message        custom assertion message
+     * @param <T>            value type
+     */
+    public <T> void assertEquals(Supplier<T> actualSupplier, T expected, String message) {
+        try {
+            AssertRetry.assertEquals(actualSupplier, expected);
+        } catch (Exception e) {
+            throw new AssertionError(Assertion.buildMessage(message, "Expected: <" + expected + ">.", e), e);
         }
     }
 
@@ -76,6 +98,25 @@ public class HardAssertion {
 
         if (Objects.equals(actual, unexpected)) {
             throw new AssertionError(Assertion.buildMessage(message, "Values should not be equal: <" + unexpected + ">."));
+        }
+    }
+
+    /**
+     * Retries until the supplied actual value differs
+     * from the unexpected value.
+     *
+     * @param actualSupplier supplier used to obtain the actual value
+     * @param unexpected     unexpected value
+     * @param message        custom assertion message
+     * @param <T>            value type
+     */
+    public <T> void assertNotEquals(Supplier<T> actualSupplier, T unexpected, String message) {
+
+        try {
+            AssertRetry.assertNotEquals(actualSupplier, unexpected);
+        } catch (Exception e) {
+            throw new AssertionError(Assertion.buildMessage(message,
+                    "Values should not be equal: <" + unexpected + ">.", e), e);
         }
     }
 }
