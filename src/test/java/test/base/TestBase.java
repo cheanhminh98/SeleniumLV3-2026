@@ -1,16 +1,21 @@
 package test.base;
 
+import com.assertion.Assertion;
+import com.assertion.HardAssertion;
+import com.assertion.SoftAssertion;
 import com.data.BrowserType;
-import com.driver.BaseDriverFactory;
 import com.driver.DriverConfig;
 import com.driver.DriverManager;
 import com.utilities.DriverConfigLoader;
-import lombok.Getter;
 import org.openqa.selenium.WebDriver;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.AfterMethod;
 
 public abstract class TestBase {
 
     protected DriverConfigLoader driverConfigLoader = new DriverConfigLoader();
+    protected final SoftAssertion softAssert = new SoftAssertion();
+    protected final HardAssertion hardAssert = new HardAssertion();
 
     /**
      * Initializes WebDriver for the specified browser.
@@ -24,8 +29,18 @@ public abstract class TestBase {
     }
 
     /**
+     * Verifies all soft assertions and clears
+     * the assertion state after each test method.
+     */
+    @AfterMethod(alwaysRun = true)
+    public void afterMethod() {
+        Assertion.finishTest();
+    }
+
+    /**
      * Quits WebDriver.
      */
+    @AfterClass(alwaysRun = true)
     protected void tearDown() {
         DriverManager.quitDriver();
     }

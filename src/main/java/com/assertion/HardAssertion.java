@@ -1,68 +1,81 @@
 package com.assertion;
 
-import java.util.function.Supplier;
+import java.util.Objects;
 
 public class HardAssertion {
 
     /**
-     * Asserts that the condition eventually evaluates to true.
+     * Verifies that the condition eventually becomes true.
      *
      * @param condition assertion condition
-     * @param message   assertion message
      */
-    public static void assertTrue(AssertionCondition condition, String message) {
+    public void assertTrue(AssertionCondition condition) {
+        AssertRetry.assertTrue(condition);
+    }
+
+    /**
+     * Verifies that the condition eventually becomes true.
+     *
+     * @param condition assertion condition
+     * @param message   custom assertion message
+     */
+    public void assertTrue(AssertionCondition condition, String message) {
         try {
             AssertRetry.assertTrue(condition);
         } catch (Exception e) {
-            throw new AssertionError(Assertion.buildMessage(message, "Expected condition to be true."), e);
+            throw new AssertionError(Assertion.buildMessage(message, "Expected condition to be true.", e), e);
         }
     }
 
     /**
-     * Asserts that the condition eventually evaluates to false.
+     * Verifies that the condition eventually becomes false.
      *
      * @param condition assertion condition
-     * @param message   assertion message
      */
-    public static void assertFalse(AssertionCondition condition, String message) {
+    public void assertFalse(AssertionCondition condition) {
+        AssertRetry.assertFalse(condition);
+    }
+
+    /**
+     * Verifies that the condition eventually becomes false.
+     *
+     * @param condition assertion condition
+     * @param message   custom assertion message
+     */
+    public void assertFalse(AssertionCondition condition, String message) {
         try {
             AssertRetry.assertFalse(condition);
         } catch (Exception e) {
-            throw new AssertionError(Assertion.buildMessage(message, "Expected condition to be false."), e);
+            throw new AssertionError(Assertion.buildMessage(message, "Expected condition to be false.", e), e);
         }
     }
 
     /**
-     * Asserts that the supplied value eventually equals
-     * the expected value.
+     * Verifies that two values are equal.
      *
-     * @param actualSupplier supplier for the actual value
-     * @param expected       expected value
-     * @param message        assertion message
-     * @param <T>            value type
+     * @param actual   actual value
+     * @param expected expected value
+     * @param message  custom assertion message
+     * @param <T>      value type
      */
-    public static <T> void assertEquals(Supplier<T> actualSupplier, T expected, String message) {
-        try {
-            AssertRetry.assertEquals(actualSupplier, expected);
-        } catch (Exception e) {
-            throw new AssertionError(Assertion.buildMessage(message, "Expected: <" + expected + ">."), e);
+    public <T> void assertEquals(T actual, T expected, String message) {
+        if (!Objects.equals(actual, expected)) {
+            throw new AssertionError(Assertion.buildMessage(message, "Expected: <" + expected + ">, but was: <" + actual + ">."));
         }
     }
 
     /**
-     * Asserts that the supplied value eventually differs
-     * from the unexpected value.
+     * Verifies that two values are not equal.
      *
-     * @param actualSupplier supplier for the actual value
-     * @param unexpected     unexpected value
-     * @param message        assertion message
-     * @param <T>            value type
+     * @param actual     actual value
+     * @param unexpected unexpected value
+     * @param message    custom assertion message
+     * @param <T>        value type
      */
-    public static <T> void assertNotEquals(Supplier<T> actualSupplier, T unexpected, String message) {
-        try {
-            AssertRetry.assertNotEquals(actualSupplier, unexpected);
-        } catch (Exception e) {
-            throw new AssertionError(Assertion.buildMessage(message, "Expected value to differ from <" + unexpected + ">."), e);
+    public <T> void assertNotEquals(T actual, T unexpected, String message) {
+
+        if (Objects.equals(actual, unexpected)) {
+            throw new AssertionError(Assertion.buildMessage(message, "Values should not be equal: <" + unexpected + ">."));
         }
     }
 }
