@@ -1,122 +1,153 @@
 package com.assertion;
 
+import org.openqa.selenium.TimeoutException;
+
+import java.time.Duration;
 import java.util.Objects;
 import java.util.function.Supplier;
 
 public class HardAssertion {
 
     /**
-     * Verifies that the condition eventually becomes true.
+     * Verifies that the specified condition eventually evaluates to
+     * using the default assertion timeout.
      *
-     * @param condition assertion condition
-     */
-    public void assertTrue(AssertionCondition condition) {
-        AssertRetry.assertTrue(condition);
-    }
-
-    /**
-     * Verifies that the condition eventually becomes true.
-     *
-     * @param condition assertion condition
-     * @param message   custom assertion message
+     * @param condition assertion condition to evaluate
+     * @throws AssertionError when the condition does not become true
      */
     public void assertTrue(AssertionCondition condition, String message) {
+
         try {
             AssertRetry.assertTrue(condition);
-        } catch (Exception e) {
-            throw new AssertionError(Assertion.buildMessage(message,
-                    "Expected condition to be true.", e), e);
+        } catch (TimeoutException e) {
+            throw new AssertionError(Assertion.buildMessage(message, "Expected condition to be true.", e), e);
         }
     }
 
     /**
-     * Verifies that the condition eventually becomes false.
+     * Verifies that the specified condition eventually evaluates to
+     * within the specified timeout.
      *
-     * @param condition assertion condition
-     */
-    public void assertFalse(AssertionCondition condition) {
-        AssertRetry.assertFalse(condition);
-    }
-
-    /**
-     * Verifies that the condition eventually becomes false.
-     *
-     * @param condition assertion condition
+     * @param condition assertion condition to evaluate
+     * @param timeout   maximum time allowed for the assertion
      * @param message   custom assertion message
+     * @throws AssertionError when the condition does not become true
      */
-    public void assertFalse(AssertionCondition condition, String message) {
+    public void assertTrue(AssertionCondition condition, Duration timeout, String message) {
 
         try {
-            AssertRetry.assertFalse(condition);
-        } catch (Exception e) {
-            throw new AssertionError(Assertion.buildMessage(message,
-                    "Expected condition to be false.", e), e);
+            AssertRetry.assertTrue(condition, timeout);
+        } catch (TimeoutException e) {
+            throw new AssertionError(Assertion.buildMessage(message, "Expected condition to be true.", e), e);
         }
     }
 
     /**
-     * Verifies that two values are equal.
+     * Verifies that the specified condition eventually evaluates to
+     * using the default assertion timeout.
+     *
+     * @param condition assertion condition to evaluate
+     * @param message   custom assertion message
+     * @throws AssertionError when the condition does not become false
+     */
+    public void assertFalse(AssertionCondition condition, String message) {
+        try {
+            AssertRetry.assertFalse(condition);
+        } catch (TimeoutException e) {
+            throw new AssertionError(Assertion.buildMessage(message, "Expected condition to be false.", e), e);
+        }
+    }
+
+    /**
+     * Verifies that the specified condition eventually evaluates to
+     * within the specified timeout.
+     *
+     * @param condition assertion condition to evaluate
+     * @param timeout   maximum time allowed for the assertion
+     * @param message   custom assertion message
+     * @throws AssertionError when the condition does not become false
+     */
+    public void assertFalse(AssertionCondition condition, Duration timeout, String message) {
+        try {
+            AssertRetry.assertFalse(condition, timeout);
+        } catch (TimeoutException e) {
+            throw new AssertionError(Assertion.buildMessage(message, "Expected condition to be false.", e), e);
+        }
+    }
+
+    /**
+     * Verifies that the actual value equals the expected value.
+     * This is a snapshot assertion and does not retry.
      *
      * @param actual   actual value
      * @param expected expected value
      * @param message  custom assertion message
      * @param <T>      value type
+     * @throws AssertionError when the values are not equal
      */
     public <T> void assertEquals(T actual, T expected, String message) {
         if (!Objects.equals(actual, expected)) {
-            throw new AssertionError(Assertion.buildMessage(message,
-                    "Expected: <" + expected + ">, but was: <" + actual + ">."));
+            throw new AssertionError(Assertion.buildMessage(message, "Expected: <" + expected + ">, but was: <" + actual + ">."));
         }
     }
 
     /**
-     * Retries until the supplied actual value equals
-     * the expected value.
+     * Verifies that the supplied actual value eventually equals
+     * the expected value within the specified timeout.
+     * The supplier is evaluated repeatedly until the assertion
+     * passes or the timeout is reached.
      *
-     * @param actualSupplier supplier used to obtain the actual value
+     * @param actualSupplier supplier that provides the actual value
      * @param expected       expected value
+     * @param timeout        maximum time allowed for the assertion
      * @param message        custom assertion message
      * @param <T>            value type
+     * @throws AssertionError when the actual value does not equal
+     *                        the expected value within the timeout
      */
-    public <T> void assertEquals(Supplier<T> actualSupplier, T expected, String message) {
+    public <T> void assertEquals(Supplier<T> actualSupplier, T expected, Duration timeout, String message) {
         try {
-            AssertRetry.assertEquals(actualSupplier, expected);
-        } catch (Exception e) {
+            AssertRetry.assertEquals(actualSupplier, expected, timeout);
+        } catch (TimeoutException e) {
             throw new AssertionError(Assertion.buildMessage(message, "Expected: <" + expected + ">.", e), e);
         }
     }
 
     /**
-     * Verifies that two values are not equal.
+     * Verifies that the actual value is different from the unexpected value.
+     * This is a snapshot assertion and does not retry.
      *
      * @param actual     actual value
-     * @param unexpected unexpected value
+     * @param unexpected value that the actual value must not equal
      * @param message    custom assertion message
      * @param <T>        value type
+     * @throws AssertionError when the values are equal
      */
     public <T> void assertNotEquals(T actual, T unexpected, String message) {
-
         if (Objects.equals(actual, unexpected)) {
             throw new AssertionError(Assertion.buildMessage(message, "Values should not be equal: <" + unexpected + ">."));
         }
     }
 
     /**
-     * Retries until the supplied actual value differs
-     * from the unexpected value.
+     * Verifies that the supplied actual value eventually differs
+     * from the unexpected value within the specified timeout.
+     * The supplier is evaluated repeatedly until the assertion
+     * passes or the timeout is reached.
      *
-     * @param actualSupplier supplier used to obtain the actual value
-     * @param unexpected     unexpected value
+     * @param actualSupplier supplier that provides the actual value
+     * @param unexpected     value that the actual value must not equal
+     * @param timeout        maximum time allowed for the assertion
      * @param message        custom assertion message
      * @param <T>            value type
+     * @throws AssertionError when the actual value remains equal
+     *                        to the unexpected value until the timeout
      */
-    public <T> void assertNotEquals(Supplier<T> actualSupplier, T unexpected, String message) {
-
+    public <T> void assertNotEquals(Supplier<T> actualSupplier, T unexpected, Duration timeout, String message) {
         try {
-            AssertRetry.assertNotEquals(actualSupplier, unexpected);
-        } catch (Exception e) {
-            throw new AssertionError(Assertion.buildMessage(message,
-                    "Values should not be equal: <" + unexpected + ">.", e), e);
+            AssertRetry.assertNotEquals(actualSupplier, unexpected, timeout);
+        } catch (TimeoutException e) {
+            throw new AssertionError(Assertion.buildMessage(message, "Values should not be equal: <" + unexpected + ">.", e), e);
         }
     }
 }

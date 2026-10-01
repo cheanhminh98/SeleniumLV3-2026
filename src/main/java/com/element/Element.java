@@ -154,7 +154,9 @@ public class Element {
      * @return element text
      */
     public String getText() {
-        return getRetry().retryValue(this::readText);
+        return getRetry().retryValue(
+                () -> getElement().getText()
+        );
     }
 
     /**
@@ -163,25 +165,9 @@ public class Element {
      * @return element value
      */
     public String getValue() {
-        return getRetry().retryValue(this::readValue);
-    }
-
-    /**
-     * Reads the visible text of the element once without retrying.
-     *
-     * @return current element text
-     */
-    public String readText() {
-        return getElement().getText();
-    }
-
-    /**
-     * Reads the value attribute of the element once without retrying.
-     *
-     * @return current element value
-     */
-    public String readValue() {
-        return getElement().getAttribute("value");
+        return getRetry().retryValue(
+                () -> getElement().getAttribute("value")
+        );
     }
 
     /**
