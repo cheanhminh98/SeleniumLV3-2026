@@ -1,11 +1,7 @@
 package com.element;
 
 import com.driver.DriverManager;
-import org.openqa.selenium.By;
-import org.openqa.selenium.ElementClickInterceptedException;
-import org.openqa.selenium.ElementNotInteractableException;
-import org.openqa.selenium.JavascriptExecutor;
-import org.openqa.selenium.WebElement;
+import org.openqa.selenium.*;
 import org.openqa.selenium.interactions.Actions;
 
 import java.util.List;
@@ -175,15 +171,18 @@ public class Element {
     }
 
     /**
-     * Checks whether the element is displayed.
+     * Checks whether the first matching element is displayed.
      *
-     * @return true if the element exists and is displayed
+     * @return true if the element exists and is displayed; otherwise false
      */
     public boolean isDisplayed() {
-        List<WebElement> elements =
-                DriverManager.getDriver()
-                        .findElements(locator);
-        return !elements.isEmpty() && elements.get(0).isDisplayed();
+        try {
+            return getRetry().retryValue(
+                    () -> getElement().isDisplayed()
+            );
+        } catch (NoSuchElementException e) {
+            return false;
+        }
     }
 
     /**
@@ -195,6 +194,17 @@ public class Element {
         return !DriverManager.getDriver()
                 .findElements(locator)
                 .isEmpty();
+    }
+
+    /**
+     * Checks whether the first matching element is selected.
+     *
+     * @return true if the element is selected; otherwise false
+     */
+    public boolean isChecked() {
+        return getRetry().retryValue(
+                () -> getElement().isSelected()
+        );
     }
 
     /**
