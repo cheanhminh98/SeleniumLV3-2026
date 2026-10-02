@@ -5,8 +5,6 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Properties;
 import java.util.ServiceLoader;
 import java.util.function.Consumer;
@@ -14,27 +12,23 @@ import java.util.function.Consumer;
 @Slf4j
 public class ReportManager {
 
-    private static final List<Report> reports = new ArrayList<>();
-    private static boolean initialized = false;
-
     private static final String REPORT_PROPERTY = "report";
     private static final String DEFAULT_REPORT = "allure";
 
+    private static Report report;
 
     /**
      * Initializes the configured report.
-     * System property has higher priority than the report configuration.
+     * System property has higher priority than the properties file.
      * If no system property is provided, Allure is used by default.
      */
     public static synchronized void initialize() {
-        if (initialized) {
+        if (report != null) {
             return;
         }
-        String report = getConfiguredReport();
-        Report selectedReport = findReport(report);
-        register(selectedReport);
-        initialized = true;
-        log.info("Report initialized: {}", selectedReport.getName());
+        String reportName = getConfiguredReport();
+        report = findReport(reportName);
+        log.info("Report initialized: {}", report.getName());
     }
 
     /**
@@ -62,11 +56,8 @@ public class ReportManager {
      */
     private static String loadReportProperty() {
         Properties properties = new Properties();
-        try (InputStream inputStream =
-                     ReportManager.class
-                             .getClassLoader()
-                             .getResourceAsStream(Constant.REPORT_CONFIG_PATH)) {
-
+        try (InputStream inputStream = ReportManager.class.getClassLoader()
+                .getResourceAsStream(Constant.REPORT_CONFIG_PATH)) {
             if (inputStream == null) {
                 return null;
             }
@@ -95,115 +86,96 @@ public class ReportManager {
     }
 
     /**
-     * Registers a reporting implementation.
+     * Gets the initialized report.
      *
-     * @param report report implementation
+     * @return initialized report
      */
-    public static void register(Report report) {
+    private static synchronized Report getReport() {
         if (report == null) {
-            throw new IllegalArgumentException("Report implementation cannot be null.");
+            throw new IllegalStateException("Report has not been initialized. "
+                    + "Call ReportManager.initialize() before using the report.");
         }
-        reports.add(report);
+        return report;
     }
 
     /**
-     * Removes all registered reports.
-     */
-    public static void clear() {
-        reports.clear();
-    }
-
-    /**
-     * Starts a test in all registered reports.
+     * Starts a test.
      *
      * @param testName test name
      */
     public static void startTest(String testName) {
-        executeForEachReport(report -> report.startTest(testName));
+        execute(report -> report.startTest(testName));
     }
 
     /**
-     * Logs an informational message to all reports.
+     * Logs an informational message.
      *
      * @param message message to log
      */
     public static void info(String message) {
-        executeForEachReport(report -> report.info(message));
+        execute(report -> report.info(message));
     }
 
     /**
-     * Logs a passed message to all reports.
+     * Logs a passed test message.
      *
      * @param message message to log
      */
     public static void pass(String message) {
-        executeForEachReport(report -> report.pass(message));
+        execute(report -> report.pass(message));
     }
 
     /**
-     * Logs a failed message to all reports.
+     * Logs a failed test message.
      *
      * @param message message to log
      */
     public static void fail(String message) {
-        executeForEachReport(report -> report.fail(message));
+        execute(report -> report.fail(message));
     }
 
     /**
-     * Logs a skipped message to all reports.
+     * Logs a skipped test message.
      *
      * @param message message to log
      */
     public static void skip(String message) {
-        executeForEachReport(report -> report.skip(message));
+        execute(report -> report.skip(message));
     }
 
     /**
-     * Attaches a screenshot to all reports using DriverManager.
+     * Attaches a screenshot to the current test.
      *
      * @param name screenshot name
      */
     public static void attachScreenshot(String name) {
-        executeForEachReport(report -> report.attachScreenshot(name));
+        execute(report -> report.attachScreenshot(name));
     }
 
     /**
-     * Runs the action for each report.
-     * If one report fails, the other reports continue to run
+     * Executes an action on the configured report.
+     * Report failures are logged and do not interrupt test execution.
      *
-     * @param action action to run
+     * @param action report action
      */
-    private static void executeForEachReport(Consumer<Report> action) {
-        for (Report report : reports) {
-            try {
-                action.accept(report);
-            } catch (Exception e) {
-                log.error(
-                        "Report execution failed for {}: {}",
-                        report.getClass().getSimpleName(),
-                        e.getMessage()
-                );
-            }
+    private static void execute(Consumer<Report> action) {
+        Report currentReport = getReport();
+        try {
+            action.accept(currentReport);
+        } catch (Exception e) {
+            log.error("Report execution failed for {}: {}", currentReport.getClass().getSimpleName(), e.getMessage(), e);
         }
     }
 
     /**
-     * Flushes all reports that support report finalization.
+     * Flushes the configured report.
      */
     public static void flush() {
-        for (Report report : reports) {
-            if (!(report instanceof FlushableReport)) {
-                continue;
-            }
-            try {
-                ((FlushableReport) report).flush();
-            } catch (Exception e) {
-                log.error("Unable to flush report {}: {}",
-                        report.getName(),
-                        e.getMessage(),
-                        e
-                );
-            }
+        Report currentReport = getReport();
+        try {
+            currentReport.flush();
+        } catch (Exception e) {
+            log.error("Unable to flush report {}: {}", currentReport.getName(), e.getMessage(), e);
         }
     }
 }

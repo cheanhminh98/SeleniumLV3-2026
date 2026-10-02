@@ -50,4 +50,9 @@ public interface Report {
      * @param name  screenshot name
      */
     void attachScreenshot(String name);
+
+    /**
+     * Flushes report data.
+     */
+    void flush();
 }

@@ -7,7 +7,7 @@ import com.aventstack.extentreports.reporter.ExtentSparkReporter;
 import com.driver.DriverManager;
 import org.openqa.selenium.OutputType;
 
-public class ExtentReport implements Report, FlushableReport {
+public class ExtentReport implements Report {
 
     private final ExtentReports extentReports;
     private final ThreadLocal<ExtentTest> extentTest = new ThreadLocal<>();

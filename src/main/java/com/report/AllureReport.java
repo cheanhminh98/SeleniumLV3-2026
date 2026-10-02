@@ -7,6 +7,7 @@ import io.qameta.allure.AllureResultsWriter;
 import io.qameta.allure.FileSystemResultsWriter;
 import io.qameta.allure.model.Status;
 import io.qameta.allure.model.StatusDetails;
+import io.qameta.allure.model.StepResult;
 import io.qameta.allure.model.TestResult;
 import lombok.extern.slf4j.Slf4j;
 import org.openqa.selenium.OutputType;
@@ -22,22 +23,17 @@ public class AllureReport implements Report {
     private final ThreadLocal<String> testUuid = new ThreadLocal<>();
 
     /**
-     * Creates an Allure report.
+     * Creates an Allure report using the configured results directory.
      */
     public AllureReport() {
         String resultsDirectory = getResultsDirectory();
-        AllureResultsWriter writer =
-                new FileSystemResultsWriter(
-                        new File(resultsDirectory).toPath()
-                );
+        AllureResultsWriter writer = new FileSystemResultsWriter(new File(resultsDirectory).toPath());
         lifecycle = new AllureLifecycle(writer);
         Allure.setLifecycle(lifecycle);
     }
 
     /**
-     * Gets the Allure results directory.
-     *
-     * @return results directory
+     * Returns the configured Allure results directory.
      */
     private String getResultsDirectory() {
         String directory = System.getProperty("allure.results.directory");
@@ -48,9 +44,7 @@ public class AllureReport implements Report {
     }
 
     /**
-     * Gets the report name.
-     *
-     * @return report name
+     * Returns the report name used by the report provider.
      */
     @Override
     public String getName() {
@@ -58,99 +52,94 @@ public class AllureReport implements Report {
     }
 
     /**
-     * Starts an Allure test.
-     *
-     * @param testName test name
+     * Starts a new Allure test case.
      */
     @Override
     public void startTest(String testName) {
         String uuid = UUID.randomUUID().toString();
-        TestResult testResult = new TestResult()
-                .setUuid(uuid)
-                .setName(testName);
+        TestResult testResult = new TestResult().setUuid(uuid).setName(testName);
         testUuid.set(uuid);
         lifecycle.scheduleTestCase(uuid, testResult);
         lifecycle.startTestCase(uuid);
     }
 
     /**
-     * Logs an informational message.
-     *
-     * @param message message to log
+     * Adds an information step to the current test.
      */
     @Override
     public void info(String message) {
-        Allure.step(message);
+        String testCaseUuid = getTestUuid();
+        String stepUuid = UUID.randomUUID().toString();
+        StepResult stepResult = new StepResult().setName(message);
+        lifecycle.startStep(testCaseUuid, stepUuid, stepResult);
+        lifecycle.stopStep(stepUuid);
     }
 
     /**
-     * Logs a passed message.
-     *
-     * @param message message to log
+     * Marks the current test as passed and finishes it.
      */
     @Override
     public void pass(String message) {
-        Allure.step(message);
-        finishTest(Status.PASSED, null);
+        finishTest(Status.PASSED, message);
     }
 
     /**
-     * Logs a failed message.
-     *
-     * @param message message to log
+     * Marks the current test as failed and finishes it.
      */
     @Override
     public void fail(String message) {
-        Allure.step(message);
-        StatusDetails statusDetails = new StatusDetails().setMessage(message);
-        finishTest(Status.FAILED, statusDetails);
+        finishTest(Status.FAILED, message);
     }
 
     /**
-     * Logs a skipped message.
-     *
-     * @param message message to log
+     * Marks the current test as skipped and finishes it.
      */
     @Override
     public void skip(String message) {
-        Allure.step(message);
-        StatusDetails statusDetails = new StatusDetails()
-                .setMessage(message);
-        finishTest(Status.SKIPPED, statusDetails);
+        finishTest(Status.SKIPPED, message);
     }
 
     /**
-     * Attaches a screenshot to the Allure report using DriverManager.
-     *
-     * @param name  screenshot name
+     * Captures and attaches a screenshot to the current test.
      */
     @Override
     public void attachScreenshot(String name) {
         byte[] screenshot = DriverManager.getScreenshotAs(OutputType.BYTES);
-        Allure.addAttachment(name, "image/png", new ByteArrayInputStream(screenshot), ".png");
+        lifecycle.addAttachment(name, "image/png", ".png", new ByteArrayInputStream(screenshot));
     }
 
     /**
-     * Finishes and writes the current Allure test.
-     *
-     * @param status test status
-     * @param statusDetails test status details
+     * Allure writes the result when the test is finished.
      */
-    private void finishTest(Status status, StatusDetails statusDetails) {
-        String uuid = testUuid.get();
-        if (uuid == null) {
-            return;
-        }
-        lifecycle.updateTestCase(uuid,
-                testResult -> {
-                    testResult.setStatus(status);
-                    if (statusDetails != null) {
-                        testResult.setStatusDetails(statusDetails);
-                    }
-                }
-        );
+    @Override
+    public void flush() {
+        // No explicit flush is required.
+    }
+
+    /**
+     * Finishes the current test with the given status.
+     */
+    private void finishTest(Status status, String message) {
+        String uuid = getTestUuid();
+        lifecycle.updateTestCase(uuid, testResult -> {
+            testResult.setStatus(status);
+            if (message != null && !message.isBlank()) {
+                testResult.setStatusDetails(new StatusDetails().setMessage(message));
+            }
+        });
         lifecycle.stopTestCase(uuid);
         lifecycle.writeTestCase(uuid);
         testUuid.remove();
+    }
+
+    /**
+     * Returns the UUID of the current test.
+     */
+    private String getTestUuid() {
+        String uuid = testUuid.get();
+        if (uuid == null) {
+            throw new IllegalStateException("No active Allure test. " + "startTest() must be called before logging.");
+        }
+        return uuid;
     }
 }
