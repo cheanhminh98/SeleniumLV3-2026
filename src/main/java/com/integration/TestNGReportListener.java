@@ -1,14 +1,25 @@
 package com.integration;
 
-import com.driver.DriverManager;
 import com.report.ReportManager;
 import lombok.extern.slf4j.Slf4j;
-import org.openqa.selenium.WebDriver;
+import org.testng.IExecutionListener;
+import org.testng.ITestContext;
 import org.testng.ITestListener;
 import org.testng.ITestResult;
 
 @Slf4j
-public class TestNGReportListener implements ITestListener {
+public class TestNGReportListener implements ITestListener, IExecutionListener {
+
+    /**
+     * Initializes the configured report for the current TestNG test.
+     *
+     * @param context TestNG test context
+     */
+    @Override
+    public void onStart(ITestContext context) {
+        ReportManager.initialize();
+        log.info("TestNG report initialized.");
+    }
 
     /**
      * Handles test start.
@@ -32,6 +43,7 @@ public class TestNGReportListener implements ITestListener {
         String testName = getTestName(result);
         log.info("{} test is succeeded.", testName);
         ReportManager.pass("Test passed.");
+        ReportManager.finishTest();
     }
 
     /**
@@ -43,8 +55,9 @@ public class TestNGReportListener implements ITestListener {
     public void onTestFailure(ITestResult result) {
         String testName = getTestName(result);
         log.error("{} test is failed.", testName);
-        ReportManager.fail(getFailureMessage(result));
         takeScreenshot(testName);
+        ReportManager.fail(getFailureMessage(result));
+        ReportManager.finishTest();
     }
 
     /**
@@ -57,6 +70,15 @@ public class TestNGReportListener implements ITestListener {
         String testName = getTestName(result);
         log.info("{} test is skipped.", testName);
         ReportManager.skip(getFailureMessage(result));
+        ReportManager.finishTest();
+    }
+
+    /**
+     * Flushes reports after the entire TestNG execution finishes.
+     */
+    @Override
+    public void onExecutionFinish() {
+        ReportManager.flush();
     }
 
     /**
