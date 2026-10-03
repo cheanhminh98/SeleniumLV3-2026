@@ -55,4 +55,9 @@ public interface Report {
      * Flushes report data.
      */
     void flush();
+
+    /**
+     * Finishes the current test.
+     */
+    void finishTest();
 }

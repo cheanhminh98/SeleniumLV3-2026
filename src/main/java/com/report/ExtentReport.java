@@ -108,9 +108,10 @@ public class ExtentReport implements Report {
     }
 
     /**
-     * Ends the current Extent test.
+     * Finishes the current Extent test.
      */
-    public void endTest() {
+    @Override
+    public void finishTest() {
         extentTest.remove();
     }
 

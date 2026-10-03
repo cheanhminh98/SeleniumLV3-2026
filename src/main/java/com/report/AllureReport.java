@@ -76,27 +76,33 @@ public class AllureReport implements Report {
     }
 
     /**
-     * Marks the current test as passed and finishes it.
+     * Logs a passed message.
+     *
+     * @param message message to log
      */
     @Override
     public void pass(String message) {
-        finishTest(Status.PASSED, message);
+        Allure.step(message, Status.PASSED);
     }
 
     /**
-     * Marks the current test as failed and finishes it.
+     * Logs a failed message.
+     *
+     * @param message message to log
      */
     @Override
     public void fail(String message) {
-        finishTest(Status.FAILED, message);
+        Allure.step(message, Status.FAILED);
     }
 
     /**
-     * Marks the current test as skipped and finishes it.
+     * Logs a skipped message.
+     *
+     * @param message message to log
      */
     @Override
     public void skip(String message) {
-        finishTest(Status.SKIPPED, message);
+        Allure.step(message, Status.SKIPPED);
     }
 
     /**
@@ -119,14 +125,9 @@ public class AllureReport implements Report {
     /**
      * Finishes the current test with the given status.
      */
-    private void finishTest(Status status, String message) {
+    @Override
+    public void finishTest() {
         String uuid = getTestUuid();
-        lifecycle.updateTestCase(uuid, testResult -> {
-            testResult.setStatus(status);
-            if (message != null && !message.isBlank()) {
-                testResult.setStatusDetails(new StatusDetails().setMessage(message));
-            }
-        });
         lifecycle.stopTestCase(uuid);
         lifecycle.writeTestCase(uuid);
         testUuid.remove();

@@ -43,6 +43,7 @@ public class TestNGReportListener implements ITestListener, IExecutionListener {
         String testName = getTestName(result);
         log.info("{} test is succeeded.", testName);
         ReportManager.pass("Test passed.");
+        ReportManager.finishTest();
     }
 
     /**
@@ -56,6 +57,7 @@ public class TestNGReportListener implements ITestListener, IExecutionListener {
         log.error("{} test is failed.", testName);
         takeScreenshot(testName);
         ReportManager.fail(getFailureMessage(result));
+        ReportManager.finishTest();
     }
 
     /**
@@ -68,6 +70,7 @@ public class TestNGReportListener implements ITestListener, IExecutionListener {
         String testName = getTestName(result);
         log.info("{} test is skipped.", testName);
         ReportManager.skip(getFailureMessage(result));
+        ReportManager.finishTest();
     }
 
     /**

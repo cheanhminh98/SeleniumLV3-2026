@@ -178,4 +178,11 @@ public class ReportManager {
             log.error("Unable to flush report {}: {}", currentReport.getName(), e.getMessage(), e);
         }
     }
+
+    /**
+     * Finishes the current test.
+     */
+    public static void finishTest() {
+        execute(Report::finishTest);
+    }
 }
