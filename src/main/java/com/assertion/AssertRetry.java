@@ -29,7 +29,7 @@ public final class AssertRetry {
         Objects.requireNonNull(timeout, "Timeout cannot be null.");
         AssertionRetryContext.setAssertionTimeout(timeout);
         try {
-            new AssertionWait(timeout).until(driver -> condition.evaluate(Duration.ZERO));
+            new AssertionWait(timeout).until(driver -> condition.evaluate());
         } finally {
             AssertionRetryContext.clear();
         }
@@ -56,7 +56,7 @@ public final class AssertRetry {
         Objects.requireNonNull(timeout, "Timeout cannot be null.");
         AssertionRetryContext.setAssertionTimeout(timeout);
         try {
-            new AssertionWait(timeout).until(driver -> !condition.evaluate(Duration.ZERO));
+            new AssertionWait(timeout).until(driver -> !condition.evaluate());
         } finally {
             AssertionRetryContext.clear();
         }

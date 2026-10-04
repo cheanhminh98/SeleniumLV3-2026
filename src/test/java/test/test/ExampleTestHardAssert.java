@@ -7,6 +7,8 @@ import org.openqa.selenium.By;
 import org.testng.annotations.Test;
 import test.base.TestNGBase;
 
+import java.time.Duration;
+
 public class ExampleTestHardAssert extends TestNGBase {
 
     Element addButton = new Element(By.xpath("//button[text()='Add']"));
@@ -20,7 +22,7 @@ public class ExampleTestHardAssert extends TestNGBase {
         DriverManager.open("https://the-internet.herokuapp.com/dynamic_controls");
 
         ReportManager.info("- Verify Add button is not visible");
-        hardAssert.assertTrue(addButton::isDisplayed, "Add button should not be visible.");
+        hardAssert.assertTrue(addButton::isDisplayed, Duration.ofSeconds(15),"Add button should not be visible.");
 
         ReportManager.info("- Verify Remove button is enabled");
         softAssert.assertTrue(removeButton::isEnabled, "Remove button should be enabled.");
