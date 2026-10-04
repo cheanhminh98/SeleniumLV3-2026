@@ -181,11 +181,7 @@ public class Element {
      */
     public boolean isDisplayed() {
         if (AssertionRetryContext.isInAssertionContext()) {
-            try {
-                return getElement().isDisplayed();
-            } catch (NoSuchElementException e) {
-                return false;
-            }
+            return getElement().isDisplayed();
         }
         try {
             return getRetry().retryValue(() -> getElement().isDisplayed());
@@ -212,11 +208,7 @@ public class Element {
      */
     public boolean isChecked() {
         if (AssertionRetryContext.isInAssertionContext()) {
-            try {
-                return getElement().isSelected();
-            } catch (NoSuchElementException e) {
-                return false;
-            }
+            return getElement().isSelected();
         }
         try {
             return getRetry().retryValue(() -> getElement().isSelected());
@@ -233,11 +225,7 @@ public class Element {
      */
     public boolean isEnabled() {
         if (AssertionRetryContext.isInAssertionContext()) {
-            try {
-                return getElement().isEnabled();
-            } catch (NoSuchElementException e) {
-                return false;
-            }
+            return getElement().isEnabled();
         }
         try {
             return getRetry().retryValue(() -> getElement().isEnabled());
