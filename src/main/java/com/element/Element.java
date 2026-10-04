@@ -1,5 +1,6 @@
 package com.element;
 
+import com.assertion.AssertionRetryContext;
 import com.driver.DriverManager;
 import org.openqa.selenium.*;
 import org.openqa.selenium.interactions.Actions;
@@ -154,9 +155,10 @@ public class Element {
      * @return element text
      */
     public String getText() {
-        return getRetry().retryValue(
-                () -> getElement().getText()
-        );
+        if (AssertionRetryContext.isInAssertionContext()) {
+            return getElement().getText();
+        }
+        return getRetry().retryValue(() -> getElement().getText());
     }
 
     /**
@@ -165,8 +167,10 @@ public class Element {
      * @return element value
      */
     public String getValue() {
-        return getRetry().retryValue(
-                () -> getElement().getAttribute("value")
+        if (AssertionRetryContext.isInAssertionContext()) {
+            return getElement().getAttribute("value");
+        }
+        return getRetry().retryValue(() -> getElement().getAttribute("value")
         );
     }
 
@@ -176,11 +180,16 @@ public class Element {
      * @return true if the element exists and is displayed; otherwise false
      */
     public boolean isDisplayed() {
+        if (AssertionRetryContext.isInAssertionContext()) {
+            try {
+                return getElement().isDisplayed();
+            } catch (NoSuchElementException e) {
+                return false;
+            }
+        }
         try {
-            return getRetry().retryValue(
-                    () -> getElement().isDisplayed()
-            );
-        } catch (NoSuchElementException e) {
+            return getRetry().retryValue(() -> getElement().isDisplayed());
+        } catch (TimeoutException e) {
             return false;
         }
     }
@@ -202,9 +211,39 @@ public class Element {
      * @return true if the element is selected; otherwise false
      */
     public boolean isChecked() {
-        return getRetry().retryValue(
-                () -> getElement().isSelected()
-        );
+        if (AssertionRetryContext.isInAssertionContext()) {
+            try {
+                return getElement().isSelected();
+            } catch (NoSuchElementException e) {
+                return false;
+            }
+        }
+        try {
+            return getRetry().retryValue(() -> getElement().isSelected());
+        } catch (TimeoutException e) {
+            return false;
+        }
+    }
+
+    /**
+     * Checks whether the first matching element is enabled.
+     * When inside assertion context, skips retry to prevent nested wait timeout.
+     *
+     * @return true if the element is enabled; otherwise false
+     */
+    public boolean isEnabled() {
+        if (AssertionRetryContext.isInAssertionContext()) {
+            try {
+                return getElement().isEnabled();
+            } catch (NoSuchElementException e) {
+                return false;
+            }
+        }
+        try {
+            return getRetry().retryValue(() -> getElement().isEnabled());
+        } catch (TimeoutException e) {
+            return false;
+        }
     }
 
     /**

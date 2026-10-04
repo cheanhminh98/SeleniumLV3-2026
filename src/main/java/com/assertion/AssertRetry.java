@@ -1,17 +1,12 @@
 package com.assertion;
 
 import com.driver.DriverManager;
-import org.openqa.selenium.StaleElementReferenceException;
-import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.time.Duration;
-import java.util.List;
 import java.util.Objects;
 import java.util.function.Supplier;
 
 public final class AssertRetry {
-
-    private static final List<Class<? extends Throwable>> COMMON_RETRY_EXCEPTIONS = List.of(StaleElementReferenceException.class);
 
     /**
      * Retries until the assertion condition evaluates to true
@@ -32,7 +27,12 @@ public final class AssertRetry {
     public static void assertTrue(AssertionCondition condition, Duration timeout) {
         Objects.requireNonNull(condition, "AssertionCondition cannot be null.");
         Objects.requireNonNull(timeout, "Timeout cannot be null.");
-        createWait(timeout).until(driver -> condition.evaluate(Duration.ZERO));
+        AssertionRetryContext.setAssertionTimeout(timeout);
+        try {
+            new AssertionWait(timeout).until(driver -> condition.evaluate(Duration.ZERO));
+        } finally {
+            AssertionRetryContext.clear();
+        }
     }
 
     /**
@@ -54,7 +54,12 @@ public final class AssertRetry {
     public static void assertFalse(AssertionCondition condition, Duration timeout) {
         Objects.requireNonNull(condition, "AssertionCondition cannot be null.");
         Objects.requireNonNull(timeout, "Timeout cannot be null.");
-        createWait(timeout).until(driver -> !condition.evaluate(Duration.ZERO));
+        AssertionRetryContext.setAssertionTimeout(timeout);
+        try {
+            new AssertionWait(timeout).until(driver -> !condition.evaluate(Duration.ZERO));
+        } finally {
+            AssertionRetryContext.clear();
+        }
     }
 
     /**
@@ -80,7 +85,19 @@ public final class AssertRetry {
     public static <T> void assertEquals(Supplier<T> actualSupplier, T expected, Duration timeout) {
         Objects.requireNonNull(actualSupplier, "Actual value supplier cannot be null.");
         Objects.requireNonNull(timeout, "Timeout cannot be null.");
-        assertTrue(() -> Objects.equals(actualSupplier.get(), expected), timeout);
+        AssertionValue<T> actualValue = new AssertionValue<>();
+        AssertionRetryContext.setAssertionTimeout(timeout);
+        try {
+            new AssertionWait(timeout).until(driver -> {
+                T actual = actualSupplier.get();
+                actualValue.set(actual);
+                return Objects.equals(actual, expected);
+            });
+        } catch (AssertionTimeoutException e) {
+            throw new AssertionTimeoutException("Expected: <" + expected + ">, but got: <" + actualValue.get() + ">.", e);
+        } finally {
+            AssertionRetryContext.clear();
+        }
     }
 
     /**
@@ -106,21 +123,36 @@ public final class AssertRetry {
     public static <T> void assertNotEquals(Supplier<T> actualSupplier, T unexpected, Duration timeout) {
         Objects.requireNonNull(actualSupplier, "Actual value supplier cannot be null.");
         Objects.requireNonNull(timeout, "Timeout cannot be null.");
-        assertTrue(() -> !Objects.equals(actualSupplier.get(), unexpected), timeout);
+        AssertionValue<T> actualValue = new AssertionValue<>();
+        AssertionRetryContext.setAssertionTimeout(timeout);
+        try {
+            new AssertionWait(timeout).until(driver -> {
+                T actual = actualSupplier.get();
+                actualValue.set(actual);
+                return !Objects.equals(actual, unexpected);
+            });
+        } catch (AssertionTimeoutException e) {
+            throw new AssertionTimeoutException("Values should not be equal: <" + unexpected + ">, but got: <" + actualValue.get() + ">.", e);
+        } finally {
+            AssertionRetryContext.clear();
+        }
     }
 
     /**
-     * Creates a WebDriverWait for assertion retry.
+     * Stores the latest actual value evaluated during polling.
      *
-     * @param timeout maximum wait duration
-     * @return configured WebDriverWait
+     * @param <T> value type
      */
-    private static WebDriverWait createWait(Duration timeout) {
-        WebDriverWait wait = new WebDriverWait(
-                DriverManager.getDriver(),
-                timeout,
-                DriverManager.getPollingInterval());
-        wait.ignoreAll(COMMON_RETRY_EXCEPTIONS);
-        return wait;
+    private static final class AssertionValue<T> {
+
+        private T value;
+
+        void set(T value) {
+            this.value = value;
+        }
+
+        T get() {
+            return value;
+        }
     }
 }

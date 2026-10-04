@@ -1,7 +1,5 @@
 package com.assertion;
 
-import org.openqa.selenium.TimeoutException;
-
 import java.time.Duration;
 import java.util.Objects;
 import java.util.function.Supplier;
@@ -18,10 +16,9 @@ public class SoftAssertion {
      * @param message   custom assertion message
      */
     public void assertTrue(AssertionCondition condition, String message) {
-
         try {
             AssertRetry.assertTrue(condition);
-        } catch (TimeoutException e) {
+        } catch (AssertionTimeoutException e) {
             Assertion.addFailure(new AssertionError(Assertion.buildMessage(message, "Expected condition to be true.", e), e));
         }
     }
@@ -37,10 +34,9 @@ public class SoftAssertion {
      * @param message   custom assertion message
      */
     public void assertTrue(AssertionCondition condition, Duration timeout, String message) {
-
         try {
             AssertRetry.assertTrue(condition, timeout);
-        } catch (TimeoutException e) {
+        } catch (AssertionTimeoutException  e) {
             Assertion.addFailure(new AssertionError(Assertion.buildMessage(message, "Expected condition to be true.", e), e));
         }
     }
@@ -57,7 +53,7 @@ public class SoftAssertion {
     public void assertFalse(AssertionCondition condition, String message) {
         try {
             AssertRetry.assertFalse(condition);
-        } catch (TimeoutException e) {
+        } catch (AssertionTimeoutException e) {
             Assertion.addFailure(new AssertionError(Assertion.buildMessage(message, "Expected condition to be false.", e), e));
         }
     }
@@ -75,7 +71,7 @@ public class SoftAssertion {
     public void assertFalse(AssertionCondition condition, Duration timeout, String message) {
         try {
             AssertRetry.assertFalse(condition, timeout);
-        } catch (TimeoutException e) {
+        } catch (AssertionTimeoutException e) {
             Assertion.addFailure(new AssertionError(Assertion.buildMessage(message, "Expected condition to be false.", e), e));
         }
     }
@@ -114,7 +110,7 @@ public class SoftAssertion {
     public <T> void assertEquals(Supplier<T> actualSupplier, T expected, Duration timeout, String message) {
         try {
             AssertRetry.assertEquals(actualSupplier, expected, timeout);
-        } catch (TimeoutException e) {
+        } catch (AssertionTimeoutException e) {
             Assertion.addFailure(new AssertionError(Assertion.buildMessage(message, "Expected: <" + expected + ">.", e), e));
         }
     }
@@ -154,7 +150,7 @@ public class SoftAssertion {
     public <T> void assertNotEquals(Supplier<T> actualSupplier, T unexpected, Duration timeout, String message) {
         try {
             AssertRetry.assertNotEquals(actualSupplier, unexpected, timeout);
-        } catch (TimeoutException e) {
+        } catch (AssertionTimeoutException e) {
             Assertion.addFailure(new AssertionError(Assertion.buildMessage(message, "Values should not be equal: <" + unexpected + ">.", e), e));
         }
     }

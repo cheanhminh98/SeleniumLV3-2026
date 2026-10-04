@@ -55,11 +55,9 @@ public final class Assertion {
      * @return formatted assertion message
      */
     static String buildMessage(String message, String defaultMessage) {
-
         if (message == null || message.isBlank()) {
             return defaultMessage;
         }
-
         return message + System.lineSeparator() + defaultMessage;
     }
 

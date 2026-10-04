@@ -1,6 +1,7 @@
 package com.assertion;
 
 import java.time.Duration;
+import java.util.Objects;
 
 @FunctionalInterface
 public interface AssertionCondition {
@@ -13,15 +14,12 @@ public interface AssertionCondition {
     boolean evaluate();
 
     /**
-     * Evaluates the assertion condition.
+     * Evaluates the assertion condition with the supplied timeout.
      *
-     * <p>The timeout parameter is intentionally ignored.
-     * The assertion retry timeout is managed by {@link AssertRetry}.</p>
-     *
-     * @param timeout timeout supplied by the assertion retry mechanism
      * @return true when the condition is satisfied
      */
     default boolean evaluate(Duration timeout) {
+        Objects.requireNonNull(timeout, "Timeout cannot be null.");
         return evaluate();
     }
 }
