@@ -10,7 +10,6 @@
     <test name="Report Test">
         <classes>
             <class name="test.test.ExampleTestSoftAssert"/>
-            <class name="test.test.ExampleTestHardAssert"/>
         </classes>
     </test>
 

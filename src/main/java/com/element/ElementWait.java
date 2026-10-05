@@ -4,16 +4,16 @@ import com.driver.DriverManager;
 import org.openqa.selenium.StaleElementReferenceException;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.Objects;
 
 public class ElementWait extends WebDriverWait {
 
     private final Element element;
+    private final Duration timeout;
 
-    private static final List<Class<? extends Throwable>> COMMON_RETRY_EXCEPTIONS = List.of(
-            StaleElementReferenceException.class
-    );
+    private static final List<Class<? extends Throwable>> COMMON_RETRY_EXCEPTIONS = List.of(StaleElementReferenceException.class);
 
     /**
      * Creates an ElementWait using the timeout and polling interval
@@ -22,8 +22,19 @@ public class ElementWait extends WebDriverWait {
      * @param element element to wait for
      */
     ElementWait(Element element) {
-        super(DriverManager.getDriver(), DriverManager.getTimeout(), DriverManager.getPollingInterval());
+        this(element, DriverManager.getTimeout());
+    }
+
+    /**
+     * Creates an ElementWait using the specified timeout.
+     *
+     * @param element element to wait for
+     * @param timeout timeout
+     */
+    ElementWait(Element element, Duration timeout) {
+        super(DriverManager.getDriver(), Objects.requireNonNull(timeout, "Timeout cannot be null."), DriverManager.getPollingInterval());
         this.element = Objects.requireNonNull(element, "Element cannot be null.");
+        this.timeout = timeout;
         ignoreAll(COMMON_RETRY_EXCEPTIONS);
     }
 
@@ -37,9 +48,15 @@ public class ElementWait extends WebDriverWait {
         super.until(driver -> condition.matches(element));
     }
 
+    /**
+     * Creates a new wait using the same element and timeout.
+     *
+     * @param additionalExceptions additional exceptions to ignore
+     * @return new ElementWait
+     */
     ElementWait createWait(List<Class<? extends Throwable>> additionalExceptions) {
         Objects.requireNonNull(additionalExceptions, "Additional exceptions cannot be null.");
-        ElementWait retryWait = new ElementWait(element);
+        ElementWait retryWait = new ElementWait(element, timeout);
         retryWait.ignoreAll(additionalExceptions);
         return retryWait;
     }
