@@ -1,7 +1,9 @@
 package com.element;
 
 import com.driver.DriverManager;
+import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.StaleElementReferenceException;
+import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.time.Duration;
@@ -59,5 +61,22 @@ public class ElementWait extends WebDriverWait {
         ElementWait retryWait = new ElementWait(element, timeout);
         retryWait.ignoreAll(additionalExceptions);
         return retryWait;
+    }
+
+    /**
+     * Creates the timeout exception with information about
+     * the element that caused the timeout.
+     *
+     * @param message default timeout message
+     * @param lastException last exception encountered during polling
+     * @return timeout exception
+     */
+    @Override
+    protected RuntimeException timeoutException(String message, Throwable lastException) {
+        return new TimeoutException(
+                "Element operation timed out after "
+                        + timeout.toMillis()
+                        + "milliseconds. "
+                        + "Locator: " + element.getLocator(), lastException);
     }
 }

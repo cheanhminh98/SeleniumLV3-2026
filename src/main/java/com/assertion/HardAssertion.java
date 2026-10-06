@@ -7,10 +7,11 @@ import java.util.function.Supplier;
 public class HardAssertion {
 
     /**
-     * Verifies that the specified condition eventually evaluates to
+     * Verifies that the specified condition eventually evaluates to true
      * using the default assertion timeout.
      *
      * @param condition assertion condition to evaluate
+     * @param message   custom assertion message
      * @throws AssertionError when the condition does not become true
      */
     public void assertTrue(AssertionCondition condition, String message) {
@@ -22,7 +23,7 @@ public class HardAssertion {
     }
 
     /**
-     * Verifies that the specified condition eventually evaluates to
+     * Verifies that the specified condition eventually evaluates to true
      * within the specified timeout.
      *
      * @param condition assertion condition to evaluate
@@ -31,7 +32,6 @@ public class HardAssertion {
      * @throws AssertionError when the condition does not become true
      */
     public void assertTrue(AssertionCondition condition, Duration timeout, String message) {
-
         try {
             AssertRetry.assertTrue(condition, timeout);
         } catch (AssertionTimeoutException e) {
@@ -40,7 +40,7 @@ public class HardAssertion {
     }
 
     /**
-     * Verifies that the specified condition eventually evaluates to
+     * Verifies that the specified condition eventually evaluates to false
      * using the default assertion timeout.
      *
      * @param condition assertion condition to evaluate
@@ -56,7 +56,7 @@ public class HardAssertion {
     }
 
     /**
-     * Verifies that the specified condition eventually evaluates to
+     * Verifies that the specified condition eventually evaluates to false
      * within the specified timeout.
      *
      * @param condition assertion condition to evaluate
@@ -145,6 +145,46 @@ public class HardAssertion {
             AssertRetry.assertNotEquals(actualSupplier, unexpected, timeout);
         } catch (AssertionTimeoutException e) {
             throw new AssertionError(Assertion.buildMessage(message, "Values should not be equal: <" + unexpected + ">.", e), e);
+        }
+    }
+
+    /**
+     * Asserts that the boolean condition is true.
+     * This is a snapshot assertion and does not retry.
+     *
+     * @param condition condition to evaluate
+     * @param message   assertion failure message
+     */
+    public void assertTrue(boolean condition, String message) {
+        if (!condition) {
+            throw new AssertionError(Assertion.buildMessage(message, "Expected condition to be true."));
+        }
+    }
+
+    /**
+     * Asserts that the boolean condition is false.
+     * This is a snapshot assertion and does not retry.
+     *
+     * @param condition condition to evaluate
+     * @param message   assertion failure message
+     */
+    public void assertFalse(boolean condition, String message) {
+        if (condition) {
+            throw new AssertionError(Assertion.buildMessage(message, "Expected condition to be false."));
+        }
+    }
+
+    /**
+     * Asserts that the actual boolean value equals the expected value.
+     * This is a snapshot assertion and does not retry.
+     *
+     * @param actual   actual boolean value
+     * @param expected expected boolean value
+     * @param message  assertion failure message
+     */
+    public void assertEquals(boolean actual, boolean expected, String message) {
+        if (actual != expected) {
+            throw new AssertionError(Assertion.buildMessage(message, "Expected: <" + expected + ">, but was: <" + actual + ">."));
         }
     }
 }

@@ -33,6 +33,15 @@ public class Element {
     }
 
     /**
+     * Gets the locator used by this element.
+     *
+     * @return element locator
+     */
+    By getLocator() {
+        return locator;
+    }
+
+    /**
      * Gets the first matching WebElement.
      *
      * @return matching WebElement
@@ -212,15 +221,10 @@ public class Element {
      * Checks whether the element is displayed.
      *
      * @param timeout timeout
-     * @return true if displayed; otherwise false
      */
     public boolean isDisplayed(Duration timeout) {
-        try {
-            return getRetry(timeout)
-                    .retryValue(() -> getElement().isDisplayed());
-        } catch (TimeoutException e) {
-            return false;
-        }
+        return getRetry(timeout).retryValue(() -> getElement().isDisplayed());
+
     }
 
     /**
@@ -247,15 +251,10 @@ public class Element {
      * Checks whether the element is checked.
      *
      * @param timeout timeout
-     * @return true if checked; otherwise false
      */
     public boolean isChecked(Duration timeout) {
-        try {
-            return getRetry(timeout)
-                    .retryValue(() -> getElement().isSelected());
-        } catch (TimeoutException e) {
-            return false;
-        }
+        return getRetry(timeout).retryValue(() -> getElement().isSelected());
+
     }
 
     /**
@@ -271,15 +270,10 @@ public class Element {
      * Checks whether the element is enabled.
      *
      * @param timeout timeout
-     * @return true if enabled; otherwise false
      */
     public boolean isEnabled(Duration timeout) {
-        try {
-            return getRetry(timeout)
-                    .retryValue(() -> getElement().isEnabled());
-        } catch (TimeoutException e) {
-            return false;
-        }
+        return getRetry(timeout).retryValue(() -> getElement().isEnabled());
+
     }
 
     /**

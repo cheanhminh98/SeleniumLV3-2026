@@ -1,6 +1,7 @@
 package com.assertion;
 
 import java.time.Duration;
+import java.util.Objects;
 import java.util.function.Supplier;
 
 public class SoftAssertion {
@@ -66,6 +67,21 @@ public class SoftAssertion {
     }
 
     /**
+     * Asserts that the actual value equals the expected value.
+     * This is a snapshot assertion and does not retry.
+     *
+     * @param actual   actual value
+     * @param expected expected value
+     * @param message  custom assertion message
+     * @param <T>      value type
+     */
+    public <T> void assertEquals(T actual, T expected, String message) {
+        if (!Objects.equals(actual, expected)) {
+            Assertion.addFailure(new AssertionError(Assertion.buildMessage(message, "Expected: <" + expected + ">, but was: <" + actual + ">.")));
+        }
+    }
+
+    /**
      * Asserts that the supplied actual value eventually equals
      * the expected value using the default timeout.
      *
@@ -97,6 +113,21 @@ public class SoftAssertion {
             AssertRetry.assertEquals(actualSupplier, expected, timeout);
         } catch (AssertionTimeoutException e) {
             Assertion.addFailure(new AssertionError(Assertion.buildMessage(message, "Values should be equal.", e)));
+        }
+    }
+
+    /**
+     * Asserts that the actual value is different from the unexpected value.
+     * This is a snapshot assertion and does not retry.
+     *
+     * @param actual     actual value
+     * @param unexpected unexpected value
+     * @param message    custom assertion message
+     * @param <T>        type of the assertion value
+     */
+    public <T> void assertNotEquals(T actual, T unexpected, String message) {
+        if (Objects.equals(actual, unexpected)) {
+            Assertion.addFailure(new AssertionError(Assertion.buildMessage(message, "Values should not be equal: <" + unexpected + ">.")));
         }
     }
 
@@ -134,4 +165,45 @@ public class SoftAssertion {
             Assertion.addFailure(new AssertionError(Assertion.buildMessage(message, "Values should not be equal.", e)));
         }
     }
+
+    /**
+     * Asserts that the boolean condition is true.
+     * This is a snapshot assertion and does not retry.
+     *
+     * @param condition condition to evaluate
+     * @param message   assertion failure message
+     */
+    public void assertTrue(boolean condition, String message) {
+        if (!condition) {
+            Assertion.addFailure(new AssertionError(Assertion.buildMessage(message, "Condition should be true.")));
+        }
+    }
+
+    /**
+     * Asserts that the boolean condition is false.
+     * This is a snapshot assertion and does not retry.
+     *
+     * @param condition condition to evaluate
+     * @param message   assertion failure message
+     */
+    public void assertFalse(boolean condition, String message) {
+        if (condition) {
+            Assertion.addFailure(new AssertionError(Assertion.buildMessage(message, "Condition should be false.")));
+        }
+    }
+
+    /**
+     * Asserts that the actual boolean value equals the expected value.
+     * This is a snapshot assertion and does not retry.
+     *
+     * @param actual   actual boolean value
+     * @param expected expected boolean value
+     * @param message  assertion failure message
+     */
+    public void assertEquals(boolean actual, boolean expected, String message) {
+        if (actual != expected) {
+            Assertion.addFailure(new AssertionError(Assertion.buildMessage(message, "Expected: <" + expected + ">, but was: <" + actual + ">.")));
+        }
+    }
 }
+
