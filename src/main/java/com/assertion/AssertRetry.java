@@ -1,6 +1,7 @@
 package com.assertion;
 
 import com.driver.DriverManager;
+import com.element.ElementRetry;
 
 import java.time.Duration;
 import java.util.Objects;
@@ -27,7 +28,10 @@ public final class AssertRetry {
     public static void assertTrue(AssertionCondition condition, Duration timeout) {
         Objects.requireNonNull(condition, "AssertionCondition cannot be null.");
         Objects.requireNonNull(timeout, "Timeout cannot be null.");
-        new AssertionWait(timeout).until(driver -> condition.evaluate());
+        ElementRetry.executeWithoutRetry(
+                () -> new AssertionWait(timeout)
+                        .until(driver -> condition.evaluate())
+        );
     }
 
     /**
@@ -49,7 +53,10 @@ public final class AssertRetry {
     public static void assertFalse(AssertionCondition condition, Duration timeout) {
         Objects.requireNonNull(condition, "AssertionCondition cannot be null.");
         Objects.requireNonNull(timeout, "Timeout cannot be null.");
-        new AssertionWait(timeout).until(driver -> !condition.evaluate());
+        ElementRetry.executeWithoutRetry(
+                () -> new AssertionWait(timeout)
+                        .until(driver -> !condition.evaluate())
+        );
     }
 
     /**
@@ -77,11 +84,15 @@ public final class AssertRetry {
         Objects.requireNonNull(timeout, "Timeout cannot be null.");
         AssertionValue<T> actualValue = new AssertionValue<>();
         try {
-            new AssertionWait(timeout).until(driver -> {
-                T actual = actualSupplier.get();
-                actualValue.set(actual);
-                return Objects.equals(actual, expected);
-            });
+            ElementRetry.executeWithoutRetry(
+                    () -> new AssertionWait(timeout)
+                            .until(driver -> {
+                                T actual = actualSupplier.get();
+                                actualValue.set(actual);
+
+                                return Objects.equals(actual, expected);
+                            })
+            );
         } catch (AssertionTimeoutException e) {
             throw new AssertionTimeoutException("Expected: <" + expected + ">, but got: <" + actualValue.get() + ">.", e);
         }
@@ -112,11 +123,15 @@ public final class AssertRetry {
         Objects.requireNonNull(timeout, "Timeout cannot be null.");
         AssertionValue<T> actualValue = new AssertionValue<>();
         try {
-            new AssertionWait(timeout).until(driver -> {
-                T actual = actualSupplier.get();
-                actualValue.set(actual);
-                return !Objects.equals(actual, unexpected);
-            });
+            ElementRetry.executeWithoutRetry(
+                    () -> new AssertionWait(timeout)
+                            .until(driver -> {
+                                T actual = actualSupplier.get();
+                                actualValue.set(actual);
+
+                                return !Objects.equals(actual, unexpected);
+                            })
+            );
         } catch (AssertionTimeoutException e) {
             throw new AssertionTimeoutException("Values should not be equal: <" + unexpected + ">, but got: <" + actualValue.get() + ">.", e);
         }

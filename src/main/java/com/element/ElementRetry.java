@@ -6,8 +6,9 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.Supplier;
 
-class ElementRetry {
+public class ElementRetry {
 
+    private static final ThreadLocal<Boolean> RETRY_ENABLED = ThreadLocal.withInitial(() -> true);
     private final ElementWait wait;
     private final Duration timeout;
 
@@ -41,7 +42,7 @@ class ElementRetry {
     void retryAction(Runnable action, List<Class<? extends Throwable>> additionalExceptions) {
         Objects.requireNonNull(action, "Action cannot be null.");
         Objects.requireNonNull(additionalExceptions, "Additional exceptions cannot be null.");
-        if (timeout.isZero()) {
+        if (timeout.isZero() || !isRetryEnabled()) {
             action.run();
             return;
         }
@@ -78,11 +79,36 @@ class ElementRetry {
     <T> T retryValue(Supplier<T> action, List<Class<? extends Throwable>> additionalExceptions) {
         Objects.requireNonNull(action, "Action cannot be null.");
         Objects.requireNonNull(additionalExceptions, "Additional exceptions cannot be null.");
-        if (timeout.isZero()) {
+        if (timeout.isZero() || !isRetryEnabled()) {
             return action.get();
         }
         RetryResult<T> result = wait.createWait(additionalExceptions).until(driver -> new RetryResult<>(action.get()));
         return result.getValue();
+    }
+
+    /**
+     * Executes the specified action with Element-level retry disabled for the current thread.
+     *
+     * @param action action to execute
+     */
+    public static void executeWithoutRetry(Runnable action) {
+        Objects.requireNonNull(action, "Action cannot be null.");
+        boolean previousState = RETRY_ENABLED.get();
+        RETRY_ENABLED.set(false);
+        try {
+            action.run();
+        } finally {
+            RETRY_ENABLED.set(previousState);
+        }
+    }
+
+    /**
+     * Returns whether Element-level retry is enabled for the current thread.
+     *
+     * @return true if retry is enabled
+     */
+    private static boolean isRetryEnabled() {
+        return RETRY_ENABLED.get();
     }
 
     /**

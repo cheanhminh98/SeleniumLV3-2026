@@ -29,18 +29,6 @@ public abstract class TestBase {
     }
 
     /**
-     * Verifies all collected assertions and clears the test state.
-     */
-    @AfterMethod(alwaysRun = true)
-    public void finishTest() {
-        try {
-            Assertion.finishTest();
-        } finally {
-            Assertion.clear();
-        }
-    }
-
-    /**
      * Quits WebDriver.
      */
     @AfterClass(alwaysRun = true)
