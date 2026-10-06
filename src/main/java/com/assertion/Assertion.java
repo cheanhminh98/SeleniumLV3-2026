@@ -38,13 +38,18 @@ public final class Assertion {
 
     /**
      * Verifies all assertions and clears the current test state.
+     *
      */
     public static void finishTest() {
-        try {
-            assertAll();
-        } finally {
-            FAILURES.remove();
-        }
+        assertAll();
+    }
+
+    /**
+     * Clears all assertion failures for the current test thread.
+     *
+     */
+    public static void clear() {
+        FAILURES.remove();
     }
 
     /**

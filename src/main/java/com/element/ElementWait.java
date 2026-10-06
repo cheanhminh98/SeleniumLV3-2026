@@ -1,7 +1,6 @@
 package com.element;
 
 import com.driver.DriverManager;
-import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.StaleElementReferenceException;
 import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.support.ui.WebDriverWait;
@@ -76,7 +75,7 @@ public class ElementWait extends WebDriverWait {
         return new TimeoutException(
                 "Element operation timed out after "
                         + timeout.toMillis()
-                        + "milliseconds. "
+                        + " milliseconds. "
                         + "Locator: " + element.getLocator(), lastException);
     }
 }

@@ -6,13 +6,12 @@ import com.assertion.SoftAssertion;
 import com.data.BrowserType;
 import com.driver.DriverConfig;
 import com.driver.DriverManager;
-import com.integration.TestNGAssertionIntegration;
 import com.utilities.DriverConfigLoader;
 import org.openqa.selenium.WebDriver;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
 
-public abstract class TestBase implements TestNGAssertionIntegration {
+public abstract class TestBase {
 
     protected DriverConfigLoader driverConfigLoader = new DriverConfigLoader();
     protected final SoftAssertion softAssert = new SoftAssertion();
@@ -27,6 +26,18 @@ public abstract class TestBase implements TestNGAssertionIntegration {
         DriverConfig driverConfig = driverConfigLoader.getDriverConfig(browserType);
         DriverManager.initialize(driverConfig);
         DriverManager.open(driverConfig.getBaseUrl());
+    }
+
+    /**
+     * Verifies all collected assertions and clears the test state.
+     */
+    @AfterMethod(alwaysRun = true)
+    public void finishTest() {
+        try {
+            Assertion.finishTest();
+        } finally {
+            Assertion.clear();
+        }
     }
 
     /**
