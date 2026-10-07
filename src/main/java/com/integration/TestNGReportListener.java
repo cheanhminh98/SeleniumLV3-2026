@@ -42,8 +42,6 @@ public class TestNGReportListener implements ITestListener, IExecutionListener {
     public void onTestSuccess(ITestResult result) {
         String testName = getTestName(result);
         log.info("{} test is succeeded.", testName);
-        ReportManager.pass("Test passed.");
-        ReportManager.finishTest();
     }
 
     /**
@@ -56,8 +54,6 @@ public class TestNGReportListener implements ITestListener, IExecutionListener {
         String testName = getTestName(result);
         log.error("{} test is failed.", testName);
         takeScreenshot(testName);
-        ReportManager.fail(getFailureMessage(result));
-        ReportManager.finishTest();
     }
 
     /**
@@ -69,8 +65,6 @@ public class TestNGReportListener implements ITestListener, IExecutionListener {
     public void onTestSkipped(ITestResult result) {
         String testName = getTestName(result);
         log.info("{} test is skipped.", testName);
-        ReportManager.skip(getFailureMessage(result));
-        ReportManager.finishTest();
     }
 
     /**
@@ -117,7 +111,7 @@ public class TestNGReportListener implements ITestListener, IExecutionListener {
         try {
             ReportManager.attachScreenshot(testName + " - Failure");
         } catch (Exception e) {
-            log.error("Unable to capture failure screenshot: {}", e.getMessage());
+            log.error("Unable to capture failure screenshot: {}", e.getMessage(), e);
         }
     }
 }
