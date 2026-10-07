@@ -22,6 +22,9 @@ public class TestNGAssertionListener implements IInvokedMethodListener {
         }
         try {
             Assertion.finishTest();
+        } catch (AssertionError error) {
+            testResult.setThrowable(error);
+            testResult.setStatus(ITestResult.FAILURE);
         } finally {
             Assertion.clear();
         }
