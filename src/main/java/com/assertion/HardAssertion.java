@@ -128,6 +128,25 @@ public class HardAssertion {
 
     /**
      * Verifies that the supplied actual value eventually differs
+     * from the unexpected value using the default assertion timeout.
+     *
+     * @param actualSupplier supplier that provides the actual value
+     * @param unexpected     value that the actual value must not equal
+     * @param message        custom assertion message
+     * @param <T>            value type
+     * @throws AssertionError when the actual value remains equal
+     *                        to the unexpected value until the timeout
+     */
+    public <T> void assertNotEquals(Supplier<T> actualSupplier, T unexpected, String message) {
+        try {
+            AssertRetry.assertNotEquals(actualSupplier, unexpected);
+        } catch (AssertionTimeoutException e) {
+            throw new AssertionError(Assertion.buildMessage(message, "Values should not be equal.", e), e);
+        }
+    }
+
+    /**
+     * Verifies that the supplied actual value eventually differs
      * from the unexpected value within the specified timeout.
      * The supplier is evaluated repeatedly until the assertion
      * passes or the timeout is reached.

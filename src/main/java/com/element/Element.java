@@ -273,59 +273,5 @@ public class Element {
      */
     public boolean isEnabled(Duration timeout) {
         return getRetry(timeout).retryValue(() -> getElement().isEnabled());
-
-    }
-
-    /**
-     * Waits until the element exists.
-     */
-    public void waitForExist() {
-        getWait().waitUntil(ElementConditions.isExist());
-    }
-
-    /**
-     * Waits until the element is visible.
-     */
-    public void waitForVisible() {
-        getWait().waitUntil(ElementConditions.isVisible());
-    }
-
-    /**
-     * Waits until the element is clickable.
-     */
-    public void waitForClickable() {
-        getWait().waitUntil(ElementConditions.isClickable());
-    }
-
-    /**
-     * Waits until the element is enabled.
-     */
-    public void waitForEnabled() {
-        getWait().waitUntil(ElementConditions.isEnabled());
-    }
-
-    /**
-     * Waits until the element is invisible.
-     */
-    public void waitForInvisible() {
-        getWait().waitUntil(ElementConditions.isInvisible());
-    }
-
-    /**
-     * Waits until the element is disabled.
-     */
-    public void waitForDisabled() {
-        getWait().waitUntil(ElementConditions.isDisabled());
-    }
-
-    /**
-     * Waits until the specified condition is satisfied.
-     *
-     * @param condition element condition
-     */
-    public void waitUntil(ElementCondition condition) {
-        Objects.requireNonNull(condition, "ElementCondition cannot be null.");
-
-        getWait().waitUntil(condition);
     }
 }
