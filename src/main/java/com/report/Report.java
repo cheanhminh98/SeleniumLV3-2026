@@ -3,6 +3,13 @@ package com.report;
 public interface Report {
 
     /**
+     * Gets the unique name of the report.
+     *
+     * @return report name
+     */
+    String getName();
+
+    /**
      * Starts a test.
      *
      * @param testName test name
@@ -43,4 +50,9 @@ public interface Report {
      * @param name  screenshot name
      */
     void attachScreenshot(String name);
+
+    /**
+     * Flushes report data.
+     */
+    void flush();
 }

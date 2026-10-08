@@ -7,8 +7,6 @@ import com.aventstack.extentreports.reporter.ExtentSparkReporter;
 import com.driver.DriverManager;
 import org.openqa.selenium.OutputType;
 
-import java.io.*;
-
 public class ExtentReport implements Report {
 
     private final ExtentReports extentReports;
@@ -35,6 +33,16 @@ public class ExtentReport implements Report {
             reportPath = "test-output/ExtentReport/index.html";
         }
         return reportPath;
+    }
+
+    /**
+     * Gets the report name.
+     *
+     * @return report name
+     */
+    @Override
+    public String getName() {
+        return "extent";
     }
 
     /**
@@ -109,6 +117,7 @@ public class ExtentReport implements Report {
     /**
      * Flushes ExtentReports.
      */
+    @Override
     public void flush() {
         extentReports.flush();
     }
@@ -123,7 +132,7 @@ public class ExtentReport implements Report {
         ExtentTest test = extentTest.get();
         if (test == null) {
             throw new IllegalStateException("No active Extent test. " +
-                            "startTest() must be called before logging.");
+                    "startTest() must be called before logging.");
         }
         return test;
     }
