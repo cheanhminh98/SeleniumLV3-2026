@@ -1,108 +1,151 @@
 package com.report;
 
-import com.driver.DriverManager;
 import lombok.extern.slf4j.Slf4j;
-import org.openqa.selenium.WebDriver;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.ServiceLoader;
 import java.util.function.Consumer;
 
 @Slf4j
 public class ReportManager {
 
-    private static final List<Report> reports = new ArrayList<>();
+    private static final String REPORT_PROPERTY = "report";
+    private static final String DEFAULT_REPORT = "allure";
+
+    private static Report report;
 
     /**
-     * Registers a reporting implementation.
-     *
-     * @param report report implementation
+     * Initializes the configured report.
+     * System property has higher priority than the properties file.
+     * If no system property is provided, Allure is used by default.
      */
-    public static void register(Report report) {
-        if (report == null) {
-            throw new IllegalArgumentException("Report implementation cannot be null.");
+    public static synchronized void initialize() {
+        if (report != null) {
+            return;
         }
-        reports.add(report);
+        String reportName = getConfiguredReport();
+        report = findReport(reportName);
+        log.info("Report initialized: {}", report.getName());
     }
 
     /**
-     * Removes all registered reports.
+     * Gets the configured report.
+     * System property has higher priority than the properties file.
+     *
+     * @return configured report name
      */
-    public static void clear() {
-        reports.clear();
+    private static String getConfiguredReport() {
+        String systemReport = System.getProperty(REPORT_PROPERTY);
+        if (systemReport != null && !systemReport.isBlank()) {
+            return systemReport.trim();
+        }
+        return DEFAULT_REPORT;
     }
 
     /**
-     * Starts a test in all registered reports.
+     * Finds a report implementation using ServiceLoader.
+     *
+     * @param reportName report name
+     * @return matching report implementation
+     */
+    private static Report findReport(String reportName) {
+        String normalizedName = reportName.trim().toLowerCase();
+        return ServiceLoader.load(Report.class).stream().map(
+                        ServiceLoader.Provider::get).filter(
+                        currentReport -> currentReport.getName()
+                                .equalsIgnoreCase(normalizedName))
+                .findFirst().orElseThrow(()
+                        -> new IllegalArgumentException("Unsupported report: " + reportName));
+    }
+
+
+    /**
+     * Gets the initialized report.
+     *
+     * @return initialized report
+     */
+    private static synchronized Report getReport() {
+        initialize();
+        return report;
+    }
+
+    /**
+     * Starts a test.
      *
      * @param testName test name
      */
     public static void startTest(String testName) {
-        executeForEachReport(report -> report.startTest(testName));
+        execute(report -> report.startTest(testName));
     }
 
     /**
-     * Logs an informational message to all reports.
+     * Logs an informational message.
      *
      * @param message message to log
      */
     public static void info(String message) {
-        executeForEachReport(report -> report.info(message));
+        execute(report -> report.info(message));
     }
 
     /**
-     * Logs a passed message to all reports.
+     * Logs a passed test message.
      *
      * @param message message to log
      */
     public static void pass(String message) {
-        executeForEachReport(report -> report.pass(message));
+        execute(report -> report.pass(message));
     }
 
     /**
-     * Logs a failed message to all reports.
+     * Logs a failed test message.
      *
      * @param message message to log
      */
     public static void fail(String message) {
-        executeForEachReport(report -> report.fail(message));
+        execute(report -> report.fail(message));
     }
 
     /**
-     * Logs a skipped message to all reports.
+     * Logs a skipped test message.
      *
      * @param message message to log
      */
     public static void skip(String message) {
-        executeForEachReport(report -> report.skip(message));
+        execute(report -> report.skip(message));
     }
 
     /**
-     * Attaches a screenshot to all reports using DriverManager.
+     * Attaches a screenshot to the current test.
      *
      * @param name screenshot name
      */
     public static void attachScreenshot(String name) {
-        executeForEachReport(report -> report.attachScreenshot(name));
+        execute(report -> report.attachScreenshot(name));
     }
 
     /**
-     * Runs the action for each report.
-     * If one report fails, the other reports continue to run
+     * Executes an action on the configured report.
+     * Report failures are logged and do not interrupt test execution.
      *
-     * @param action action to run
+     * @param action report action
      */
-    private static void executeForEachReport(Consumer<Report> action) {
-        for (Report report : reports) {
-            try {
-                action.accept(report);
-            } catch (Exception e) {
-                log.error(
-                        "Report execution failed for {}: {}",
-                        report.getClass().getSimpleName(),
-                        e.getMessage()
-                );
-            }
+    private static void execute(Consumer<Report> action) {
+        Report currentReport = getReport();
+        try {
+            action.accept(currentReport);
+        } catch (Exception e) {
+            log.error("Report execution failed for {}: {}", currentReport.getClass().getSimpleName(), e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Flushes the configured report.
+     */
+    public static void flush() {
+        Report currentReport = getReport();
+        try {
+            currentReport.flush();
+        } catch (Exception e) {
+            log.error("Unable to flush report {}: {}", currentReport.getName(), e.getMessage(), e);
         }
     }
 }

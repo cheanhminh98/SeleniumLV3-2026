@@ -1,14 +1,13 @@
 package com.integration;
 
-import com.driver.DriverManager;
 import com.report.ReportManager;
 import lombok.extern.slf4j.Slf4j;
-import org.openqa.selenium.WebDriver;
+import org.testng.IExecutionListener;
 import org.testng.ITestListener;
 import org.testng.ITestResult;
 
 @Slf4j
-public class TestNGReportListener implements ITestListener {
+public class TestNGReportListener implements ITestListener, IExecutionListener {
 
     /**
      * Handles test start.
@@ -57,6 +56,14 @@ public class TestNGReportListener implements ITestListener {
         String testName = getTestName(result);
         log.info("{} test is skipped.", testName);
         ReportManager.skip(getFailureMessage(result));
+    }
+
+    /**
+     * Flushes reports after the entire TestNG execution finishes.
+     */
+    @Override
+    public void onExecutionFinish() {
+        ReportManager.flush();
     }
 
     /**
