@@ -1,11 +1,7 @@
 package com.report;
 
-import com.constant.Constant;
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Properties;
 import java.util.ServiceLoader;
 import java.util.function.Consumer;
 
@@ -42,30 +38,7 @@ public class ReportManager {
         if (systemReport != null && !systemReport.isBlank()) {
             return systemReport.trim();
         }
-        String configuredReport = loadReportProperty();
-        if (configuredReport != null && !configuredReport.isBlank()) {
-            return configuredReport.trim();
-        }
         return DEFAULT_REPORT;
-    }
-
-    /**
-     * Loads the report configuration from the properties file.
-     *
-     * @return configured report name, or null if not configured
-     */
-    private static String loadReportProperty() {
-        Properties properties = new Properties();
-        try (InputStream inputStream = ReportManager.class.getClassLoader()
-                .getResourceAsStream(Constant.REPORT_CONFIG_PATH)) {
-            if (inputStream == null) {
-                return null;
-            }
-            properties.load(inputStream);
-            return properties.getProperty(REPORT_PROPERTY);
-        } catch (IOException e) {
-            throw new RuntimeException("Cannot load report configuration.", e);
-        }
     }
 
     /**
@@ -75,15 +48,15 @@ public class ReportManager {
      * @return matching report implementation
      */
     private static Report findReport(String reportName) {
-        String normalizedReport = reportName.trim().toLowerCase();
-        ServiceLoader<Report> loader = ServiceLoader.load(Report.class);
-        for (Report report : loader) {
-            if (report.getName().equalsIgnoreCase(normalizedReport)) {
-                return report;
-            }
-        }
-        throw new IllegalArgumentException("Unsupported report: " + reportName);
+        String normalizedName = reportName.trim().toLowerCase();
+        return ServiceLoader.load(Report.class).stream().map(
+                        ServiceLoader.Provider::get).filter(
+                        currentReport -> currentReport.getName()
+                                .equalsIgnoreCase(normalizedName))
+                .findFirst().orElseThrow(()
+                        -> new IllegalArgumentException("Unsupported report: " + reportName));
     }
+
 
     /**
      * Gets the initialized report.
@@ -91,10 +64,7 @@ public class ReportManager {
      * @return initialized report
      */
     private static synchronized Report getReport() {
-        if (report == null) {
-            throw new IllegalStateException("Report has not been initialized. "
-                    + "Call ReportManager.initialize() before using the report.");
-        }
+        initialize();
         return report;
     }
 
@@ -177,12 +147,5 @@ public class ReportManager {
         } catch (Exception e) {
             log.error("Unable to flush report {}: {}", currentReport.getName(), e.getMessage(), e);
         }
-    }
-
-    /**
-     * Finishes the current test.
-     */
-    public static void finishTest() {
-        execute(Report::finishTest);
     }
 }

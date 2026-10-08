@@ -108,10 +108,9 @@ public class ExtentReport implements Report {
     }
 
     /**
-     * Finishes the current Extent test.
+     * Ends the current Extent test.
      */
-    @Override
-    public void finishTest() {
+    public void endTest() {
         extentTest.remove();
     }
 
@@ -133,7 +132,7 @@ public class ExtentReport implements Report {
         ExtentTest test = extentTest.get();
         if (test == null) {
             throw new IllegalStateException("No active Extent test. " +
-                            "startTest() must be called before logging.");
+                    "startTest() must be called before logging.");
         }
         return test;
     }

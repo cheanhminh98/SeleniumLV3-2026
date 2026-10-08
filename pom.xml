@@ -2,7 +2,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
-         http://maven.apache.org/xsd/maven-4.0.0.xsd">
+         https://maven.apache.org/xsd/maven-4.0.0.xsd">
 
     <modelVersion>4.0.0</modelVersion>
 
@@ -13,25 +13,33 @@
     <properties>
         <maven.compiler.source>11</maven.compiler.source>
         <maven.compiler.target>11</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
         <selenium.version>4.43.0</selenium.version>
         <lombok.version>1.18.46</lombok.version>
-        <log4j.version>2.25.4</log4j.version>
         <logback.version>1.6.3</logback.version>
         <gson.version>2.14.0</gson.version>
-        <testNG.version>7.12.0</testNG.version>
-        <jUnit.version>5.13.4</jUnit.version>
-        <allureJUnit.version>2.35.4</allureJUnit.version>
-        <allureTestNG.version>2.35.4</allureTestNG.version>
+
+        <testng.version>7.12.0</testng.version>
+        <junit.version>5.13.4</junit.version>
+
+        <allure.version>2.35.4</allure.version>
+        <extent.version>5.0.9</extent.version>
+
+        <maven.compiler.version>3.7.0</maven.compiler.version>
+        <surefire.version>3.5.6</surefire.version>
     </properties>
 
     <dependencies>
 
+        <!-- Selenium -->
         <dependency>
             <groupId>org.seleniumhq.selenium</groupId>
             <artifactId>selenium-java</artifactId>
             <version>${selenium.version}</version>
         </dependency>
 
+        <!-- Lombok -->
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
@@ -39,77 +47,139 @@
             <scope>provided</scope>
         </dependency>
 
-        <!-- Source: https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-core -->
-        <dependency>
-            <groupId>org.apache.logging.log4j</groupId>
-            <artifactId>log4j-core</artifactId>
-            <version>${log4j.version}</version>
-        </dependency>
-
+        <!-- Logging -->
         <!-- Source: https://mvnrepository.com/artifact/ch.qos.logback/logback-classic -->
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
             <version>${logback.version}</version>
-            <scope>compile</scope>
         </dependency>
 
-
+        <!-- Gson -->
         <!-- Source: https://mvnrepository.com/artifact/com.google.code.gson/gson -->
         <dependency>
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>
             <version>${gson.version}</version>
-            <scope>compile</scope>
         </dependency>
 
+        <!-- TestNG -->
         <!-- Source: https://mvnrepository.com/artifact/org.testng/testng -->
         <dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
-            <version>${testNG.version}</version>
+            <version>${testng.version}</version>
         </dependency>
 
+        <!-- JUnit 5 -->
         <!-- Source: https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
-            <version>${jUnit.version}</version>
+            <version>${junit.version}</version>
             <scope>test</scope>
         </dependency>
 
+        <!-- Allure API -->
+        <!-- Source: https://mvnrepository.com/artifact/io.qameta.allure/allure-testng -->
         <dependency>
             <groupId>io.qameta.allure</groupId>
             <artifactId>allure-java-commons</artifactId>
-            <version>2.35.4</version>
-            <scope>compile</scope>
+            <version>${allure.version}</version>
         </dependency>
+
+        <!-- Extent Reports -->
         <dependency>
             <groupId>com.aventstack</groupId>
             <artifactId>extentreports</artifactId>
-            <version>5.0.9</version>
-        </dependency>
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-api</artifactId>
-            <version>5.13.4</version>
+            <version>${extent.version}</version>
         </dependency>
 
     </dependencies>
 
-
-
     <build>
         <plugins>
+
+            <!-- Java compiler -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.7.0</version>
+                <version>${maven.compiler.version}</version>
+
                 <configuration>
-                    <encoding>UTF-8</encoding>
+                    <encoding>${project.build.sourceEncoding}</encoding>
                 </configuration>
             </plugin>
+
+            <!-- Test execution -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>${surefire.version}</version>
+
+                <configuration>
+                    <suiteXmlFiles>
+                        <suiteXmlFile>${suiteXmlFile}</suiteXmlFile>
+                    </suiteXmlFiles>
+                </configuration>
+
+                <!-- TestNG provider -->
+                <dependencies>
+                    <dependency>
+                        <groupId>org.apache.maven.surefire</groupId>
+                        <artifactId>surefire-testng</artifactId>
+                        <version>${surefire.version}</version>
+                    </dependency>
+                </dependencies>
+
+            </plugin>
+
         </plugins>
     </build>
+
+    <profiles>
+        <!-- Allure enabled by default -->
+        <profile>
+            <id>allure-default</id>
+            <activation>
+                <!-- Active when -Dallure is not specified -->
+                <property>
+                    <name>!allure</name>
+                </property>
+            </activation>
+
+            <dependencies>
+
+                <!-- Allure JUnit 5 integration -->
+                <dependency>
+                    <groupId>io.qameta.allure</groupId>
+                    <artifactId>allure-jupiter</artifactId>
+                    <version>${allure.version}</version>
+                    <scope>test</scope>
+                </dependency>
+
+                <!-- Allure TestNG integration -->
+                <dependency>
+                    <groupId>io.qameta.allure</groupId>
+                    <artifactId>allure-testng</artifactId>
+                    <version>${allure.version}</version>
+                    <scope>test</scope>
+                </dependency>
+
+            </dependencies>
+        </profile>
+
+        <!-- Allure explicitly disabled -->
+        <profile>
+            <id>allure-disabled</id>
+            <activation>
+                <property>
+                    <name>allure</name>
+                    <value>false</value>
+                </property>
+            </activation>
+        </profile>
+
+    </profiles>
 
 </project>
