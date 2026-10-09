@@ -10,6 +10,14 @@ import org.testng.ITestResult;
 public class TestNGReportListener implements ITestListener, IExecutionListener {
 
     /**
+     * Initializes the selected report before test execution begins.
+     */
+    @Override
+    public void onExecutionStart() {
+        ReportManager.initialize();
+    }
+
+    /**
      * Handles test start.
      *
      * @param result TestNG test result

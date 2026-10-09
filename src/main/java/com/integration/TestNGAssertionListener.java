@@ -22,8 +22,19 @@ public class TestNGAssertionListener implements IInvokedMethodListener {
         }
         try {
             Assertion.finishTest();
-        } catch (AssertionError error) {
-            testResult.setThrowable(error);
+        } catch (AssertionError softFailure) {
+            Throwable original = testResult.getThrowable();
+            if (testResult.getStatus() == ITestResult.FAILURE
+                    && original != null) {
+                if (original != softFailure) {
+                    original.addSuppressed(softFailure);
+                }
+            } else {
+                if (original != null && original != softFailure) {
+                    softFailure.addSuppressed(original);
+                }
+                testResult.setThrowable(softFailure);
+            }
             testResult.setStatus(ITestResult.FAILURE);
         } finally {
             Assertion.clear();
