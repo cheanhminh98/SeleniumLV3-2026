@@ -223,8 +223,16 @@ public class Element {
      * @param timeout timeout
      */
     public boolean isDisplayed(Duration timeout) {
-        return getRetry(timeout).retryValue(() -> getElement().isDisplayed());
-
+        try {
+            return getRetry(timeout).retryValue(() -> getElement().isDisplayed());
+        } catch (NoSuchElementException e) {
+            return false;
+        } catch (TimeoutException e) {
+            if (e.getCause() instanceof NoSuchElementException) {
+                return false;
+            }
+            throw e;
+        }
     }
 
     /**

@@ -136,4 +136,13 @@ public class ExtentReport implements Report {
         }
         return test;
     }
+    
+    @Override
+    public void onTestSuccess() {}
+
+    @Override
+    public void onTestFailure(String message) {}
+
+    @Override
+    public void onTestSkipped(String message) {;}
 }

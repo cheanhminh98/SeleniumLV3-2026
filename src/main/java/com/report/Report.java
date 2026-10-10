@@ -55,4 +55,29 @@ public interface Report {
      * Flushes report data.
      */
     void flush();
+
+    /**
+     * Handles a successful test result.
+     */
+    default void onTestSuccess() {
+        pass("Test passed.");
+    }
+
+    /**
+     * Handles a failed test result.
+     *
+     * @param message failure message
+     */
+    default void onTestFailure(String message) {
+        fail(message);
+    }
+
+    /**
+     * Handles a skipped test result.
+     *
+     * @param message skip message
+     */
+    default void onTestSkipped(String message) {
+        skip(message);
+    }
 }
