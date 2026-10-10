@@ -148,4 +148,29 @@ public class ReportManager {
             log.error("Unable to flush report {}: {}", currentReport.getName(), e.getMessage(), e);
         }
     }
+
+    /**
+     * Handles a successful test result.
+     */
+    public static void onTestSuccess() {
+        execute(Report::onTestSuccess);
+    }
+
+    /**
+     * Handles a failed test result.
+     *
+     * @param message failure message
+     */
+    public static void onTestFailure(String message) {
+        execute(report -> report.onTestFailure(message));
+    }
+
+    /**
+     * Handles a skipped test result.
+     *
+     * @param message skip message
+     */
+    public static void onTestSkipped(String message) {
+        execute(report -> report.onTestSkipped(message));
+    }
 }

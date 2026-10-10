@@ -24,7 +24,7 @@ public class AllureReport implements Report {
      */
     @Override
     public void startTest(String testName) {
-        Allure.getLifecycle().updateTestCase(testResult -> testResult.setName(testName));
+        // AllureTestNg manages the test lifecycle and test name.
     }
 
     /**
@@ -64,6 +64,8 @@ public class AllureReport implements Report {
      */
     @Override
     public void skip(String message) {
+        log.debug("AllureReport.skip called: {}", message);
+
         Allure.step(message, Status.SKIPPED);
     }
 
@@ -85,4 +87,22 @@ public class AllureReport implements Report {
     public void flush() {
         // No explicit flush is required.
     }
+//
+//    /**
+//     * AllureTestNg manages the successful test status.
+//     */
+//    @Override
+//    public void onTestSuccess() {}
+//
+//    /**
+//     * AllureTestNg manages the failed test status.
+//     */
+//    @Override
+//    public void onTestFailure(String message) {}
+//
+//    /**
+//     * AllureTestNg manages the skipped test status.
+//     */
+//    @Override
+//    public void onTestSkipped(String message) {}
 }

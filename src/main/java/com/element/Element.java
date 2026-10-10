@@ -1,13 +1,10 @@
 package com.element;
 
 import com.driver.DriverManager;
-import org.openqa.selenium.By;
-import org.openqa.selenium.ElementClickInterceptedException;
-import org.openqa.selenium.ElementNotInteractableException;
-import org.openqa.selenium.JavascriptExecutor;
-import org.openqa.selenium.WebElement;
+import org.openqa.selenium.*;
 import org.openqa.selenium.interactions.Actions;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.Objects;
 
@@ -27,31 +24,21 @@ public class Element {
     );
 
     /**
-     * Creates an Element from a Selenium By locator.
+     * Creates an element using the specified locator.
      *
-     * @param locator Selenium locator
+     * @param locator element locator
      */
     public Element(By locator) {
-        Objects.requireNonNull(locator, "Locator cannot be null.");
-        this.locator = locator;
+        this.locator = Objects.requireNonNull(locator, "Locator cannot be null.");
     }
 
     /**
-     * Creates a new ElementWait using the current WebDriver.
+     * Gets the locator used by this element.
      *
-     * @return ElementWait for the current driver
+     * @return element locator
      */
-    private ElementWait getWait() {
-        return new ElementWait(this);
-    }
-
-    /**
-     * Creates a new ElementRetry using the current ElementWait.
-     *
-     * @return ElementRetry for the current driver
-     */
-    private ElementRetry getRetry() {
-        return new ElementRetry(getWait());
+    By getLocator() {
+        return locator;
     }
 
     /**
@@ -70,6 +57,35 @@ public class Element {
      */
     public List<WebElement> getElements() {
         return DriverManager.getDriver().findElements(locator);
+    }
+
+    /**
+     * Creates an ElementWait using the timeout from driver configuration.
+     *
+     * @return ElementWait
+     */
+    private ElementWait getWait() {
+        return new ElementWait(this, DriverManager.getTimeout());
+    }
+
+    /**
+     * Creates an ElementRetry using the default element timeout.
+     *
+     * @return ElementRetry
+     */
+    private ElementRetry getRetry() {
+        Duration timeout = DriverManager.getTimeout();
+        return new ElementRetry(new ElementWait(this, timeout), timeout);
+    }
+
+    /**
+     * Creates an ElementRetry using the specified timeout.
+     *
+     * @param timeout timeout
+     * @return ElementRetry
+     */
+    private ElementRetry getRetry(Duration timeout) {
+        return new ElementRetry(new ElementWait(this, timeout), timeout);
     }
 
     /**
@@ -153,43 +169,76 @@ public class Element {
     }
 
     /**
-     * Gets the visible text of the element.
+     * Gets the visible text of the element without retry.
      *
      * @return element text
      */
     public String getText() {
-        return getRetry().retryValue(
-                () -> getElement().getText()
-        );
+        return getText(DriverManager.getTimeout());
+    }
+
+    /**
+     * Gets the visible text of the element.
+     *
+     * @param timeout timeout
+     * @return element text
+     */
+    public String getText(Duration timeout) {
+        return getRetry(timeout)
+                .retryValue(() -> getElement().getText());
+    }
+
+    /**
+     * Gets the value attribute of the element without retry.
+     *
+     * @return element value
+     */
+    public String getValue() {
+        return getValue(DriverManager.getTimeout());
     }
 
     /**
      * Gets the value attribute of the element.
      *
+     * @param timeout timeout
      * @return element value
      */
-    public String getValue() {
-        return getRetry().retryValue(
-                () -> getElement().getAttribute("value")
-        );
+    public String getValue(Duration timeout) {
+        return getRetry(timeout)
+                .retryValue(() -> getElement().getAttribute("value"));
+    }
+
+    /**
+     * Checks whether the element is displayed without retry.
+     *
+     * @return true if displayed; otherwise false
+     */
+    public boolean isDisplayed() {
+        return isDisplayed(DriverManager.getTimeout());
     }
 
     /**
      * Checks whether the element is displayed.
      *
-     * @return true if the element exists and is displayed
+     * @param timeout timeout
      */
-    public boolean isDisplayed() {
-        List<WebElement> elements =
-                DriverManager.getDriver()
-                        .findElements(locator);
-        return !elements.isEmpty() && elements.get(0).isDisplayed();
+    public boolean isDisplayed(Duration timeout) {
+        try {
+            return getRetry(timeout).retryValue(() -> getElement().isDisplayed());
+        } catch (NoSuchElementException e) {
+            return false;
+        } catch (TimeoutException e) {
+            if (e.getCause() instanceof NoSuchElementException) {
+                return false;
+            }
+            throw e;
+        }
     }
 
     /**
      * Checks whether the element exists.
      *
-     * @return true if at least one matching element exists
+     * @return true if the element exists; otherwise false
      */
     public boolean isExist() {
         return !DriverManager.getDriver()
@@ -198,59 +247,39 @@ public class Element {
     }
 
     /**
-     * Waits until the element exists.
+     * Checks whether the element is checked without retry.
      *
+     * @return true if checked; otherwise false
      */
-    public void waitForExist() {
-        getWait().waitUntil(ElementConditions.isExist());
+    public boolean isChecked() {
+        return isChecked(DriverManager.getTimeout());
     }
 
     /**
-     * Waits until the element is visible.
+     * Checks whether the element is checked.
      *
+     * @param timeout timeout
      */
-    public void waitForVisible() {
-        getWait().waitUntil(ElementConditions.isVisible());
+    public boolean isChecked(Duration timeout) {
+        return getRetry(timeout).retryValue(() -> getElement().isSelected());
+
     }
 
     /**
-     * Waits until the element is clickable.
+     * Checks whether the element is enabled without retry.
      *
+     * @return true if enabled; otherwise false
      */
-    public void waitForClickable() {
-        getWait().waitUntil(ElementConditions.isClickable());
+    public boolean isEnabled() {
+        return isEnabled(DriverManager.getTimeout());
     }
 
     /**
-     * Waits until the element is enabled.
+     * Checks whether the element is enabled.
      *
+     * @param timeout timeout
      */
-    public void waitForEnabled() {
-        getWait().waitUntil(ElementConditions.isEnabled());
-    }
-
-    /**
-     * Waits until the element becomes invisible.
-     *
-     */
-    public void waitForInvisible() {
-        getWait().waitUntil(ElementConditions.isInvisible());
-    }
-
-    /**
-     * Waits until the element becomes disabled.
-     *
-     */
-    public void waitForDisabled() {
-        getWait().waitUntil(ElementConditions.isDisabled());
-    }
-
-    /**
-     * Waits until the specified condition is satisfied.
-     *
-     * @param condition condition to evaluate
-     */
-    public void waitUntil(ElementCondition condition) {
-        getWait().waitUntil(condition);
+    public boolean isEnabled(Duration timeout) {
+        return getRetry(timeout).retryValue(() -> getElement().isEnabled());
     }
 }

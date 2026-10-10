@@ -3,11 +3,21 @@ package com.integration;
 import com.report.ReportManager;
 import lombok.extern.slf4j.Slf4j;
 import org.testng.IExecutionListener;
+import org.testng.IInvokedMethod;
+import org.testng.IInvokedMethodListener;
 import org.testng.ITestListener;
 import org.testng.ITestResult;
 
 @Slf4j
-public class TestNGReportListener implements ITestListener, IExecutionListener {
+public class TestNGReportListener implements ITestListener, IExecutionListener, IInvokedMethodListener {
+
+    /**
+     * Initializes the selected report before test execution begins.
+     */
+    @Override
+    public void onExecutionStart() {
+        ReportManager.initialize();
+    }
 
     /**
      * Handles test start.
@@ -29,8 +39,8 @@ public class TestNGReportListener implements ITestListener, IExecutionListener {
     @Override
     public void onTestSuccess(ITestResult result) {
         String testName = getTestName(result);
-        log.info("{} test is succeeded.", testName);
-        ReportManager.pass("Test passed.");
+        log.info("{} test succeeded.", testName);
+        ReportManager.onTestSuccess();
     }
 
     /**
@@ -42,8 +52,7 @@ public class TestNGReportListener implements ITestListener, IExecutionListener {
     public void onTestFailure(ITestResult result) {
         String testName = getTestName(result);
         log.error("{} test is failed.", testName);
-        ReportManager.fail(getFailureMessage(result));
-        takeScreenshot(testName);
+        ReportManager.onTestFailure(getFailureMessage(result));
     }
 
     /**
@@ -54,24 +63,18 @@ public class TestNGReportListener implements ITestListener, IExecutionListener {
     @Override
     public void onTestSkipped(ITestResult result) {
         String testName = getTestName(result);
-        log.info("{} test is skipped.", testName);
-        ReportManager.skip(getFailureMessage(result));
+        log.info("{} test was skipped.", testName);
+        ReportManager.onTestSkipped(getFailureMessage(result));
     }
 
     /**
-     * Flushes reports after the entire TestNG execution finishes.
+     * Flushes the selected report after TestNG execution finishes.
      */
     @Override
     public void onExecutionFinish() {
         ReportManager.flush();
     }
 
-    /**
-     * Gets the TestNG test name.
-     *
-     * @param result TestNG test result
-     * @return test name
-     */
     private String getTestName(ITestResult result) {
         return result
                 .getMethod()
@@ -103,6 +106,19 @@ public class TestNGReportListener implements ITestListener, IExecutionListener {
             ReportManager.attachScreenshot(testName + " - Failure");
         } catch (Exception e) {
             log.error("Unable to capture failure screenshot: {}", e.getMessage());
+        }
+    }
+
+    /**
+     * Captures a screenshot immediately after a failed test method invocation.
+     *
+     * @param method invoked method
+     * @param result TestNG test result
+     */
+    @Override
+    public void afterInvocation(IInvokedMethod method, ITestResult result) {
+        if (method.isTestMethod() && result.getStatus() == ITestResult.FAILURE) {
+            takeScreenshot(getTestName(result));
         }
     }
 }
