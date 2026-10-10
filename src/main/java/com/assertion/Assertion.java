@@ -18,6 +18,17 @@ public final class Assertion {
     }
 
     /**
+     * Creates and records an assertion failure with its original cause.
+     *
+     * @param message        custom assertion message
+     * @param defaultMessage default assertion details
+     * @param cause          original exception
+     */
+    static void addFailure(String message, String defaultMessage, Throwable cause) {
+        addFailure(new AssertionError(buildMessage(message, defaultMessage, cause), cause));
+    }
+
+    /**
      * Verifies all collected assertion failures.
      *
      * @throws AssertionError when one or more assertions failed

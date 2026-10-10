@@ -17,7 +17,7 @@ public class SoftAssertion {
         try {
             AssertRetry.assertTrue(condition);
         } catch (AssertionTimeoutException e) {
-            Assertion.addFailure(new AssertionError(Assertion.buildMessage(message, "Condition should be true.", e)));
+            Assertion.addFailure(message, "Condition should be true.", e);
         }
     }
 
@@ -32,7 +32,7 @@ public class SoftAssertion {
         try {
             AssertRetry.assertTrue(condition, timeout);
         } catch (AssertionTimeoutException e) {
-            Assertion.addFailure(new AssertionError(Assertion.buildMessage(message, "Condition should be true.", e)));
+            Assertion.addFailure(message, "Condition should be true.", e);
         }
     }
 
@@ -47,7 +47,7 @@ public class SoftAssertion {
         try {
             AssertRetry.assertFalse(condition);
         } catch (AssertionTimeoutException e) {
-            Assertion.addFailure(new AssertionError(Assertion.buildMessage(message, "Condition should be false.", e)));
+            Assertion.addFailure(message, "Condition should be false.", e);
         }
     }
 
@@ -62,7 +62,7 @@ public class SoftAssertion {
         try {
             AssertRetry.assertFalse(condition, timeout);
         } catch (AssertionTimeoutException e) {
-            Assertion.addFailure(new AssertionError(Assertion.buildMessage(message, "Condition should be false.", e)));
+            Assertion.addFailure(message, "Condition should be false.", e);
         }
     }
 
@@ -94,7 +94,7 @@ public class SoftAssertion {
         try {
             AssertRetry.assertEquals(actualSupplier, expected);
         } catch (AssertionTimeoutException e) {
-            Assertion.addFailure(new AssertionError(Assertion.buildMessage(message, "Values should be equal.", e)));
+            Assertion.addFailure(message, "Values should be equal.", e);
         }
     }
 
@@ -112,7 +112,7 @@ public class SoftAssertion {
         try {
             AssertRetry.assertEquals(actualSupplier, expected, timeout);
         } catch (AssertionTimeoutException e) {
-            Assertion.addFailure(new AssertionError(Assertion.buildMessage(message, "Values should be equal.", e)));
+            Assertion.addFailure(message, "Values should be equal.", e);
         }
     }
 
@@ -144,7 +144,7 @@ public class SoftAssertion {
         try {
             AssertRetry.assertNotEquals(actualSupplier, unexpected);
         } catch (AssertionTimeoutException e) {
-            Assertion.addFailure(new AssertionError(Assertion.buildMessage(message, "Values should not be equal.", e)));
+            Assertion.addFailure(message, "Values should not be equal.", e);
         }
     }
 
@@ -162,7 +162,7 @@ public class SoftAssertion {
         try {
             AssertRetry.assertNotEquals(actualSupplier, unexpected, timeout);
         } catch (AssertionTimeoutException e) {
-            Assertion.addFailure(new AssertionError(Assertion.buildMessage(message, "Values should not be equal.", e)));
+            Assertion.addFailure(message, "Values should not be equal: <" + unexpected + ">.", e);
         }
     }
 
@@ -175,7 +175,7 @@ public class SoftAssertion {
      */
     public void assertTrue(boolean condition, String message) {
         if (!condition) {
-            Assertion.addFailure(new AssertionError(Assertion.buildMessage(message, "Condition should be true.")));
+            Assertion.addFailure(new AssertionError(Assertion.buildMessage(message, "Expected condition to be true.")));
         }
     }
 
@@ -188,7 +188,7 @@ public class SoftAssertion {
      */
     public void assertFalse(boolean condition, String message) {
         if (condition) {
-            Assertion.addFailure(new AssertionError(Assertion.buildMessage(message, "Condition should be false.")));
+            Assertion.addFailure(new AssertionError(Assertion.buildMessage(message, "Expected condition to be false.")));
         }
     }
 
@@ -206,4 +206,3 @@ public class SoftAssertion {
         }
     }
 }
-
