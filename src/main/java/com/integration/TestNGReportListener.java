@@ -53,6 +53,7 @@ public class TestNGReportListener implements ITestListener, IExecutionListener, 
         String testName = getTestName(result);
         log.error("{} test is failed.", testName);
         ReportManager.onTestFailure(getFailureMessage(result));
+        if (!ReportManager.isAllureReport()) takeScreenshot(testName);
     }
 
     /**
@@ -76,10 +77,7 @@ public class TestNGReportListener implements ITestListener, IExecutionListener, 
     }
 
     private String getTestName(ITestResult result) {
-        return result
-                .getMethod()
-                .getConstructorOrMethod()
-                .getName();
+        return result.getMethod().getConstructorOrMethod().getName();
     }
 
     /**
@@ -109,16 +107,13 @@ public class TestNGReportListener implements ITestListener, IExecutionListener, 
         }
     }
 
-    /**
-     * Captures a screenshot immediately after a failed test method invocation.
-     *
-     * @param method invoked method
-     * @param result TestNG test result
-     */
     @Override
-    public void afterInvocation(IInvokedMethod method, ITestResult result) {
-        if (method.isTestMethod() && result.getStatus() == ITestResult.FAILURE) {
-            takeScreenshot(getTestName(result));
+    public void afterInvocation(IInvokedMethod method, ITestResult testResult) {
+        if (ReportManager.isAllureReport()) {
+            if (testResult.getStatus() == ITestResult.FAILURE) {
+                String testName = getTestName(testResult);
+                takeScreenshot(testName);
+            }
         }
     }
 }

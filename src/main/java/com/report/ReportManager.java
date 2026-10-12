@@ -59,13 +59,26 @@ public class ReportManager {
 
 
     /**
-     * Gets the initialized report.
+     * Gets the active report, initializing it if necessary.
      *
-     * @return initialized report
+     * @return active report implementation
      */
     private static synchronized Report getReport() {
         initialize();
         return report;
+    }
+
+    /**
+     * Gets the name of the active report.
+     *
+     * @return active report name
+     */
+    public static String getReportName() {
+        return getReport().getName();
+    }
+
+    public static boolean isAllureReport() {
+        return getReportName().equalsIgnoreCase("allure");
     }
 
     /**

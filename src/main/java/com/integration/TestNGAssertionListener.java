@@ -1,6 +1,7 @@
 package com.integration;
 
 import com.assertion.Assertion;
+import com.report.ReportManager;
 import org.testng.IInvokedMethod;
 import org.testng.IInvokedMethodListener;
 import org.testng.ITestResult;
@@ -8,11 +9,10 @@ import org.testng.ITestResult;
 public class TestNGAssertionListener implements IInvokedMethodListener {
 
     /**
-     * Executes the test method and automatically finishes
-     * all collected soft assertions.
-     * Soft assertion failures are collected while the test
-     * method is running. After the test method finishes,
+     * Finishes collected soft assertions after the test method completes.
+     * Attaches a screenshot if the test has failed and clears assertion state.
      *
+     * @param method     current invoked method
      * @param testResult current TestNG test result
      */
     @Override

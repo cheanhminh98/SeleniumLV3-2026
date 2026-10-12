@@ -38,10 +38,7 @@ public final class Assertion {
         if (failures.isEmpty()) {
             return;
         }
-        String message = failures.stream().map(AssertionError::getMessage)
-                .collect(Collectors.joining(System.lineSeparator(),
-                        "The following assertions failed:"
-                                + System.lineSeparator(), ""));
+        String message = failures.stream().map(AssertionError::getMessage).collect(Collectors.joining(System.lineSeparator(), "The following assertions failed:" + System.lineSeparator(), ""));
         AssertionError error = new AssertionError(message);
         failures.forEach(error::addSuppressed);
         throw error;
@@ -49,7 +46,6 @@ public final class Assertion {
 
     /**
      * Verifies all assertions and clears the current test state.
-     *
      */
     public static void finishTest() {
         assertAll();
@@ -57,7 +53,6 @@ public final class Assertion {
 
     /**
      * Clears all assertion failures for the current test thread.
-     *
      */
     public static void clear() {
         FAILURES.remove();
