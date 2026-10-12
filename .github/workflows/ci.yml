@@ -1,0 +1,72 @@
+name: Selenium CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      report:
+        description: Select report provider
+        required: true
+        type: choice
+        options:
+          - allure
+          - extent
+        default: allure
+
+permissions:
+  contents: read
+
+concurrency:
+  group: selenium-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Run Selenium Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    env:
+      REPORT: ${{ github.event.inputs.report || 'allure' }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java 11
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '11'
+          cache: maven
+
+      - name: Check Java and Maven
+        run: |
+          java -version
+          mvn -version
+
+      - name: Check test configuration
+        run: |
+          test -f pom.xml
+          test -f src/test/resources/suite/testng.xml
+          test -f src/test/resources/config/chrome.json
+
+      - name: Run TestNG suite
+        run: |
+          mvn --batch-mode --no-transfer-progress clean test \
+            -DsuiteXmlFile=src/test/resources/suite/testng.xml \
+            -Dheadless=true \
+            -Dreport="${REPORT}"
+
+      - name: Upload test results and reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: selenium-results-${{ github.run_number }}
+          path: |
+            target/surefire-reports/
+            test-output/
+            allure-results/
+          if-no-files-found: warn
+          retention-days: 14

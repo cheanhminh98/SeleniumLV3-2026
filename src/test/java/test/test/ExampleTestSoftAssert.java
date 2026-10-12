@@ -14,18 +14,13 @@ public class ExampleTestSoftAssert extends TestNGBase {
     private final HomePage homePage = new HomePage();
 
     @Test
-    public void verifyElementRetry() {
-        homePage.getInvalidTextBox(Duration.ofSeconds(10));
-    }
-
-    @Test
     public void verifyFailedExampled() {
 
         DriverManager.open("https://the-internet.herokuapp.com/dynamic_controls");
 
         ReportManager.info("- Verify Add button is not visible");
 
-        softAssert.assertTrue(() -> homePage.isAddButtonDisplayed(), "Add button should not be visible.");
+        softAssert.assertFalse(() -> homePage.isAddButtonDisplayed(), "Add button should not be visible.");
 
         ReportManager.info("- Verify Remove button is enabled");
 

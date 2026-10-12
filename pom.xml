@@ -28,11 +28,14 @@
 
         <maven.compiler.version>3.7.0</maven.compiler.version>
         <surefire.version>3.5.6</surefire.version>
+
+        <!-- Default TestNG suite; override with -DsuiteXmlFile=... -->
+        <suiteXmlFile>src/test/resources/suite/testng.xml</suiteXmlFile>
     </properties>
 
     <dependencies>
 
-        <!-- Selenium -->
+        <!-- Selenium WebDriver -->
         <dependency>
             <groupId>org.seleniumhq.selenium</groupId>
             <artifactId>selenium-java</artifactId>
@@ -48,7 +51,6 @@
         </dependency>
 
         <!-- Logging -->
-        <!-- Source: https://mvnrepository.com/artifact/ch.qos.logback/logback-classic -->
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
@@ -56,7 +58,6 @@
         </dependency>
 
         <!-- Gson -->
-        <!-- Source: https://mvnrepository.com/artifact/com.google.code.gson/gson -->
         <dependency>
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>
@@ -64,15 +65,13 @@
         </dependency>
 
         <!-- TestNG -->
-        <!-- Source: https://mvnrepository.com/artifact/org.testng/testng -->
         <dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
             <version>${testng.version}</version>
         </dependency>
 
-        <!-- JUnit 5 -->
-        <!-- Source: https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter -->
+        <!-- JUnit 5 API and engine -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
@@ -80,8 +79,7 @@
             <scope>test</scope>
         </dependency>
 
-        <!-- Allure API -->
-        <!-- Source: https://mvnrepository.com/artifact/io.qameta.allure/allure-testng -->
+        <!-- Allure API used by the framework's AllureReport implementation -->
         <dependency>
             <groupId>io.qameta.allure</groupId>
             <artifactId>allure-java-commons</artifactId>
@@ -105,7 +103,6 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>${maven.compiler.version}</version>
-
                 <configuration>
                     <encoding>${project.build.sourceEncoding}</encoding>
                 </configuration>
@@ -123,7 +120,7 @@
                     </suiteXmlFiles>
                 </configuration>
 
-                <!-- TestNG provider -->
+                <!-- Use the TestNG provider for XML suite execution -->
                 <dependencies>
                     <dependency>
                         <groupId>org.apache.maven.surefire</groupId>
@@ -131,25 +128,28 @@
                         <version>${surefire.version}</version>
                     </dependency>
                 </dependencies>
-
             </plugin>
 
         </plugins>
     </build>
 
     <profiles>
-        <!-- Allure enabled by default -->
+
+        <!--
+            Default report:
+            Activated when the report property is not specified.
+            Allure adapters are added only in this profile or allure-report.
+        -->
         <profile>
             <id>allure-default</id>
+
             <activation>
-                <!-- Active when -Dallure is not specified -->
                 <property>
-                    <name>!allure</name>
+                    <name>!report</name>
                 </property>
             </activation>
 
             <dependencies>
-
                 <!-- Allure JUnit 5 integration -->
                 <dependency>
                     <groupId>io.qameta.allure</groupId>
@@ -165,17 +165,50 @@
                     <version>${allure.version}</version>
                     <scope>test</scope>
                 </dependency>
-
             </dependencies>
         </profile>
 
-        <!-- Allure explicitly disabled -->
+        <!-- Explicit Allure selection: -Dreport=allure -->
         <profile>
-            <id>allure-disabled</id>
+            <id>allure-report</id>
+
             <activation>
                 <property>
-                    <name>allure</name>
-                    <value>false</value>
+                    <name>report</name>
+                    <value>allure</value>
+                </property>
+            </activation>
+
+            <dependencies>
+                <!-- Allure JUnit 5 integration -->
+                <dependency>
+                    <groupId>io.qameta.allure</groupId>
+                    <artifactId>allure-jupiter</artifactId>
+                    <version>${allure.version}</version>
+                    <scope>test</scope>
+                </dependency>
+
+                <!-- Allure TestNG integration -->
+                <dependency>
+                    <groupId>io.qameta.allure</groupId>
+                    <artifactId>allure-testng</artifactId>
+                    <version>${allure.version}</version>
+                    <scope>test</scope>
+                </dependency>
+            </dependencies>
+        </profile>
+
+        <!--
+            Explicit Extent selection: -Dreport=extent
+            No Allure TestNG/JUnit adapters are added by this profile.
+        -->
+        <profile>
+            <id>extent-report</id>
+
+            <activation>
+                <property>
+                    <name>report</name>
+                    <value>extent</value>
                 </property>
             </activation>
         </profile>

@@ -1,12 +1,15 @@
+
 package com.driver;
 
 import com.data.BrowserType;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.Setter;
 
 import java.time.Duration;
 
 @Getter
+@Setter
 @AllArgsConstructor
 public class DriverConfig {
 
@@ -39,6 +42,6 @@ public class DriverConfig {
      * @return true if remote URL is configured
      */
     public boolean isRemote() {
-        return remoteURL != null && !remoteURL.isEmpty();
+        return remoteURL != null && !remoteURL.isBlank();
     }
 }
