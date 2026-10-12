@@ -1,22 +1,27 @@
 package com.element;
 
+import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Supplier;
 
-class ElementRetry {
+public class ElementRetry {
 
+    private static final ThreadLocal<Boolean> RETRY_ENABLED = ThreadLocal.withInitial(() -> true);
     private final ElementWait wait;
+    private final Duration timeout;
 
     /**
      * Creates an ElementRetry using the specified ElementWait.
      *
      * @param wait ElementWait used for retry operations
      */
-    ElementRetry(ElementWait wait) {
+    ElementRetry(ElementWait wait, Duration timeout) {
         Objects.requireNonNull(wait, "ElementWait cannot be null.");
+        Objects.requireNonNull(timeout, "Timeout cannot be null.");
         this.wait = wait;
+        this.timeout = timeout;
     }
 
     /**
@@ -37,13 +42,15 @@ class ElementRetry {
     void retryAction(Runnable action, List<Class<? extends Throwable>> additionalExceptions) {
         Objects.requireNonNull(action, "Action cannot be null.");
         Objects.requireNonNull(additionalExceptions, "Additional exceptions cannot be null.");
-        wait.createWait(additionalExceptions)
-                .until(driver -> {
-                    action.run();
-                    return true;
-                });
+        if (timeout.isZero() || !isRetryEnabled()) {
+            action.run();
+            return;
+        }
+        wait.createWait(additionalExceptions).until(driver -> {
+            action.run();
+            return true;
+        });
     }
-
 
     /**
      * Retries an action until it executes successfully and returns
@@ -72,10 +79,36 @@ class ElementRetry {
     <T> T retryValue(Supplier<T> action, List<Class<? extends Throwable>> additionalExceptions) {
         Objects.requireNonNull(action, "Action cannot be null.");
         Objects.requireNonNull(additionalExceptions, "Additional exceptions cannot be null.");
-        RetryResult<T> result = wait
-                .createWait(additionalExceptions)
-                .until(driver -> new RetryResult<>(action.get()));
+        if (timeout.isZero() || !isRetryEnabled()) {
+            return action.get();
+        }
+        RetryResult<T> result = wait.createWait(additionalExceptions).until(driver -> new RetryResult<>(action.get()));
         return result.getValue();
+    }
+
+    /**
+     * Executes the specified action with Element-level retry disabled for the current thread.
+     *
+     * @param action action to execute
+     */
+    public static void executeWithoutRetry(Runnable action) {
+        Objects.requireNonNull(action, "Action cannot be null.");
+        boolean previousState = RETRY_ENABLED.get();
+        RETRY_ENABLED.set(false);
+        try {
+            action.run();
+        } finally {
+            RETRY_ENABLED.set(previousState);
+        }
+    }
+
+    /**
+     * Returns whether Element-level retry is enabled for the current thread.
+     *
+     * @return true if retry is enabled
+     */
+    private static boolean isRetryEnabled() {
+        return RETRY_ENABLED.get();
     }
 
     /**

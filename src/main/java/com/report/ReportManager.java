@@ -59,13 +59,26 @@ public class ReportManager {
 
 
     /**
-     * Gets the initialized report.
+     * Gets the active report, initializing it if necessary.
      *
-     * @return initialized report
+     * @return active report implementation
      */
     private static synchronized Report getReport() {
         initialize();
         return report;
+    }
+
+    /**
+     * Gets the name of the active report.
+     *
+     * @return active report name
+     */
+    public static String getReportName() {
+        return getReport().getName();
+    }
+
+    public static boolean isAllureReport() {
+        return getReportName().equalsIgnoreCase("allure");
     }
 
     /**
@@ -147,5 +160,30 @@ public class ReportManager {
         } catch (Exception e) {
             log.error("Unable to flush report {}: {}", currentReport.getName(), e.getMessage(), e);
         }
+    }
+
+    /**
+     * Handles a successful test result.
+     */
+    public static void onTestSuccess() {
+        execute(Report::onTestSuccess);
+    }
+
+    /**
+     * Handles a failed test result.
+     *
+     * @param message failure message
+     */
+    public static void onTestFailure(String message) {
+        execute(report -> report.onTestFailure(message));
+    }
+
+    /**
+     * Handles a skipped test result.
+     *
+     * @param message skip message
+     */
+    public static void onTestSkipped(String message) {
+        execute(report -> report.onTestSkipped(message));
     }
 }

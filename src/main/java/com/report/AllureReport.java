@@ -24,7 +24,6 @@ public class AllureReport implements Report {
      */
     @Override
     public void startTest(String testName) {
-        Allure.getLifecycle().updateTestCase(testResult -> testResult.setName(testName));
     }
 
     /**
@@ -64,18 +63,56 @@ public class AllureReport implements Report {
      */
     @Override
     public void skip(String message) {
+        log.debug("AllureReport.skip called: {}", message);
         Allure.step(message, Status.SKIPPED);
     }
 
     /**
      * Attaches a screenshot to the Allure report using DriverManager.
      *
-     * @param name  screenshot name
+     * @param name screenshot name
      */
     @Override
     public void attachScreenshot(String name) {
-        byte[] screenshot = DriverManager.getScreenshotAs(OutputType.BYTES);
-        Allure.addAttachment(name, "image/png", new ByteArrayInputStream(screenshot), ".png");
+        try {
+            byte[] screenshot = DriverManager.getScreenshotAs(OutputType.BYTES);
+            if (screenshot == null || screenshot.length == 0) {
+                log.warn("Screenshot is empty: {}", name);
+                return;
+            }
+            if (!Allure.getLifecycle().getCurrentTestCase().isPresent()) {
+                log.warn("Cannot attach screenshot because no Allure test is active: {}", name);
+                return;
+            }
+            Allure.addAttachment(name, "image/png", new ByteArrayInputStream(screenshot), ".png");
+        } catch (Exception e) {
+            log.error("Unable to attach screenshot to Allure: {}", name, e);
+        }
+    }
+
+    /**
+     * AllureTestNg manages successful test status.
+     */
+    @Override
+    public void onTestSuccess() {
+    }
+
+    /**
+     * AllureTestNg manages failed test status.
+     *
+     * @param message failure message
+     */
+    @Override
+    public void onTestFailure(String message) {
+    }
+
+    /**
+     * AllureTestNg manages skipped test status.
+     *
+     * @param message skip message
+     */
+    @Override
+    public void onTestSkipped(String message) {
     }
 
     /**
