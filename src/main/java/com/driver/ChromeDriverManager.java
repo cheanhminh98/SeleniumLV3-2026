@@ -6,6 +6,11 @@ import org.openqa.selenium.chrome.ChromeOptions;
 
 public class ChromeDriverManager extends BaseDriver<ChromeOptions> {
 
+    @Override
+    public String getName() {
+        return "chrome";
+    }
+
     /**
      * Creates a Chrome WebDriver.
      *

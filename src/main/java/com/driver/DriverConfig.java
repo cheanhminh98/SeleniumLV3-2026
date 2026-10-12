@@ -1,16 +1,18 @@
+
 package com.driver;
 
-import com.data.BrowserType;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.Setter;
 
 import java.time.Duration;
 
 @Getter
+@Setter
 @AllArgsConstructor
 public class DriverConfig {
 
-    private BrowserType browser;
+    private String browser;
     private boolean headless;
     private String remoteURL;
     private String baseUrl;
@@ -23,7 +25,7 @@ public class DriverConfig {
      * Creates DriverConfig with default values.
      */
     public DriverConfig() {
-        browser = BrowserType.CHROME;
+        browser = "chrome";
         headless = false;
         remoteURL = "";
         baseUrl = "https://google.com";
@@ -39,6 +41,6 @@ public class DriverConfig {
      * @return true if remote URL is configured
      */
     public boolean isRemote() {
-        return remoteURL != null && !remoteURL.isEmpty();
+        return remoteURL != null && !remoteURL.isBlank();
     }
 }
