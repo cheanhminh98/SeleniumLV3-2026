@@ -112,7 +112,7 @@ jobs:
         id: suite
         shell: bash
         env:
-          REQUESTED_SUITE: ${{ inputs.suiteXmlFile || 'src/test/resources/suite/testng.xml' }}
+          REQUESTED_SUITE: ${{ inputs.suiteXmlFile || 'src/test/resources/suite/testng-parallel.xml' }}
         run: |
           set -euo pipefail
 
