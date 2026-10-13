@@ -26,11 +26,11 @@ on:
         type: choice
         options:
           - src/test/resources/suite/testng.xml
-          - src/test/resources/suite/testsng-parallel.xml
-        default: src/test/resources/suite/testsng-parallel.xml
+          - src/test/resources/suite/ .xml
+        default: src/test/resources/suite/testng.xml
 
       platform:
-        description: Browser
+        description: Platform
         required: true
         default: chrome
         type: choice
@@ -80,9 +80,7 @@ jobs:
     timeout-minutes: 30
 
     permissions:
-      contents: read
-      pages: write
-      id-token: write
+      contents: write
 
     env:
       REPORT: ${{ inputs.report || 'allure' }}
@@ -108,22 +106,56 @@ jobs:
           java -version
           mvn -version
 
-      - name: Resolve TestNG suite
+      - name: Discover TestNG suite
         id: suite
         shell: bash
         env:
-          REQUESTED_SUITE: ${{ inputs.suiteXmlFile || 'src/test/resources/suite/testng-parallel.xml' }}
+          REQUESTED_SUITE: ${{ inputs.suiteXmlFile }}
         run: |
           set -euo pipefail
 
-          SUITE_FILE="$REQUESTED_SUITE"
+          if [ -n "$REQUESTED_SUITE" ]; then
+            if [ ! -f "$REQUESTED_SUITE" ]; then
+              echo "::error::Suite file not found: $REQUESTED_SUITE"
+              exit 1
+            fi
 
-          if [ ! -f "$SUITE_FILE" ]; then
-            echo "::error::Suite file not found: $SUITE_FILE"
-            exit 1
+            SUITE_FILE="$REQUESTED_SUITE"
+          else
+            SUITE_FILE=""
+
+            mapfile -d '' XML_FILES < <(
+              find . \
+                -type d \( -name .git -o -name target \) -prune \
+                -o -type f -iname '*.xml' -print0
+            )
+
+            SUITE_FILES=()
+
+            for FILE in "${XML_FILES[@]}"; do
+              if grep -Eq '<suite([[:space:]>])' "$FILE"; then
+                SUITE_FILES+=("$FILE")
+              fi
+            done
+
+            DEFAULT_SUITE="src/test/resources/suite/testng.xml"
+
+            if [ -f "$DEFAULT_SUITE" ]; then
+              SUITE_FILE="$DEFAULT_SUITE"
+            elif [ "${#SUITE_FILES[@]}" -eq 1 ]; then
+              SUITE_FILE="${SUITE_FILES[0]}"
+            elif [ "${#SUITE_FILES[@]}" -eq 0 ]; then
+              echo "::error::No TestNG suite XML was found."
+              exit 1
+            else
+              echo "::error::Multiple TestNG suite XML files were found."
+              echo "Specify suiteXmlFile using workflow_dispatch."
+              printf '%s\n' "${SUITE_FILES[@]}"
+              exit 1
+            fi
           fi
 
-          echo "file=$SUITE_FILE" >> "$GITHUB_OUTPUT"
+          echo "file=${SUITE_FILE#./}" >> "$GITHUB_OUTPUT"
           echo "Using TestNG suite: $SUITE_FILE"
 
       - name: Run Selenium Tests
@@ -204,24 +236,40 @@ jobs:
           if-no-files-found: warn
           retention-days: 14
 
-      - name: Upload GitHub Pages Artifact
-        if: >-
-          always() &&
-          steps.report.outputs.ready == 'true' &&
-          github.event_name != 'pull_request'
-        uses: actions/upload-pages-artifact@v5
-        with:
-          path: report-site/
-
       - name: Deploy Report to GitHub Pages
         id: deployment
         if: >-
           always() &&
           steps.report.outputs.ready == 'true' &&
           github.event_name != 'pull_request'
-        uses: actions/deploy-pages@v5
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./report-site
+          destination_dir: runs/${{ github.run_number }}
+          keep_files: true
 
       - name: Print Report URL
-        if: steps.deployment.outputs.page_url != ''
+        if: steps.deployment.outcome == 'success'
+        shell: bash
+        env:
+          PAGES_URL: ${{ steps.deployment.outputs.page_url }}
+          RUN_NUMBER: ${{ github.run_number }}
+          REPOSITORY: ${{ github.repository }}
         run: |
-          echo "Report URL: ${{ steps.deployment.outputs.page_url }}"
+          set -euo pipefail
+
+          if [ -n "$PAGES_URL" ]; then
+            BASE_URL="${PAGES_URL%/}"
+          else
+            OWNER="${REPOSITORY%%/*}"
+            REPO="${REPOSITORY#*/}"
+
+            if [ "$REPO" = "${OWNER}.github.io" ]; then
+              BASE_URL="https://${OWNER}.github.io"
+            else
+              BASE_URL="https://${OWNER}.github.io/${REPO}"
+            fi
+          fi
+
+          echo "Report URL: ${BASE_URL}/runs/${RUN_NUMBER}/"
