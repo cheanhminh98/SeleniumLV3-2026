@@ -7,7 +7,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.example</groupId>
-    <artifactId>Selenium3</artifactId>
+    <artifactId>selenium3</artifactId>
     <version>1.0-SNAPSHOT</version>
 
     <properties>
@@ -174,5 +174,13 @@
         </profile>
 
     </profiles>
+
+    <distributionManagement>
+        <repository>
+            <id>github</id>
+            <name>GitHub Packages</name>
+            <url>https://maven.pkg.github.com/cheanhminh98/SeleniumLV3-2026</url>
+        </repository>
+    </distributionManagement>
 
 </project>
