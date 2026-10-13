@@ -14,7 +14,7 @@ public class ExampleTestSoftAssert extends TestNGBase {
     private final HomePage homePage = new HomePage();
 
     @Test
-    public void verifyExampledTest() {
+    public void verifyExampledSoftTest() {
 
         DriverManager.open("https://the-internet.herokuapp.com/dynamic_controls");
 
