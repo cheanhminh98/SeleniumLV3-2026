@@ -21,13 +21,10 @@ on:
         default: allure
 
       suiteXmlFile:
-        description: Select a TestNG suite XML
-        required: true
-        type: choice
-        options:
-          - src/test/resources/suite/testng.xml
-          - src/test/resources/suite/ .xml
-        default: src/test/resources/suite/testng.xml
+        description: 'TestNG suite XML path (leave empty for automatic discovery)'
+        required: false
+        type: string
+        default: ''
 
       platform:
         description: Platform
