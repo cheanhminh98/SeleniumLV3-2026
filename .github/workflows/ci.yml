@@ -250,23 +250,18 @@ jobs:
         if: steps.deployment.outcome == 'success'
         shell: bash
         env:
-          PAGES_URL: ${{ steps.deployment.outputs.page_url }}
           RUN_NUMBER: ${{ github.run_number }}
           REPOSITORY: ${{ github.repository }}
         run: |
           set -euo pipefail
 
-          if [ -n "$PAGES_URL" ]; then
-            BASE_URL="${PAGES_URL%/}"
-          else
-            OWNER="${REPOSITORY%%/*}"
-            REPO="${REPOSITORY#*/}"
+          OWNER="${REPOSITORY%%/*}"
+          REPO="${REPOSITORY#*/}"
 
-            if [ "$REPO" = "${OWNER}.github.io" ]; then
-              BASE_URL="https://${OWNER}.github.io"
-            else
-              BASE_URL="https://${OWNER}.github.io/${REPO}"
-            fi
+          if [ "$REPO" = "${OWNER}.github.io" ]; then
+            BASE_URL="https://${OWNER}.github.io"
+          else
+            BASE_URL="https://${OWNER}.github.io/${REPO}"
           fi
 
           echo "Report URL: ${BASE_URL}/runs/${RUN_NUMBER}/"
