@@ -3,10 +3,6 @@
 
 <suite name="Report Test Suite">
 
-    <listeners>
-        <listener class-name="com.integration.TestNGReportListener"/>
-    </listeners>
-
     <test name="Report Test">
         <classes>
             <class name="test.test.ExampleTestSoftAssert"/>

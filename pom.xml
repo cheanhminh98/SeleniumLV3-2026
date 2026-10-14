@@ -7,7 +7,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.example</groupId>
-    <artifactId>Selenium3</artifactId>
+    <artifactId>selenium3</artifactId>
     <version>1.0-SNAPSHOT</version>
 
     <properties>
@@ -48,7 +48,6 @@
         </dependency>
 
         <!-- Logging -->
-        <!-- Source: https://mvnrepository.com/artifact/ch.qos.logback/logback-classic -->
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
@@ -56,7 +55,6 @@
         </dependency>
 
         <!-- Gson -->
-        <!-- Source: https://mvnrepository.com/artifact/com.google.code.gson/gson -->
         <dependency>
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>
@@ -64,7 +62,6 @@
         </dependency>
 
         <!-- TestNG -->
-        <!-- Source: https://mvnrepository.com/artifact/org.testng/testng -->
         <dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
@@ -72,7 +69,6 @@
         </dependency>
 
         <!-- JUnit 5 -->
-        <!-- Source: https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
@@ -81,7 +77,6 @@
         </dependency>
 
         <!-- Allure API -->
-        <!-- Source: https://mvnrepository.com/artifact/io.qameta.allure/allure-testng -->
         <dependency>
             <groupId>io.qameta.allure</groupId>
             <artifactId>allure-java-commons</artifactId>
@@ -105,7 +100,6 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>${maven.compiler.version}</version>
-
                 <configuration>
                     <encoding>${project.build.sourceEncoding}</encoding>
                 </configuration>
@@ -131,18 +125,17 @@
                         <version>${surefire.version}</version>
                     </dependency>
                 </dependencies>
-
             </plugin>
 
         </plugins>
     </build>
 
     <profiles>
+
         <!-- Allure enabled by default -->
         <profile>
             <id>allure-default</id>
             <activation>
-                <!-- Active when -Dallure is not specified -->
                 <property>
                     <name>!allure</name>
                 </property>
@@ -181,5 +174,13 @@
         </profile>
 
     </profiles>
+
+    <distributionManagement>
+        <repository>
+            <id>github</id>
+            <name>GitHub Packages</name>
+            <url>https://maven.pkg.github.com/cheanhminh98/SeleniumLV3-2026</url>
+        </repository>
+    </distributionManagement>
 
 </project>

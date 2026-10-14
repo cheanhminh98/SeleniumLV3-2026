@@ -1,6 +1,5 @@
 package test.base;
 
-import com.data.BrowserType;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Optional;
@@ -15,7 +14,7 @@ public abstract class TestNGBase extends TestBase {
     @BeforeClass(alwaysRun = true)
     @Parameters("browser")
     public void beforeClass(@Optional("chrome") String browser) {
-        setUp(BrowserType.getBrowser(browser));
+        setUp(browser);
     }
 
     /**

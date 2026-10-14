@@ -19,10 +19,9 @@ public class DriverContainer {
      */
     public DriverContainer(DriverConfig config) {
         Objects.requireNonNull(config, "DriverConfig cannot be null.");
+
         this.config = config;
-        this.driver = BaseDriverFactory
-                .getDriver(config.getBrowser())
-                .createWebDriver(config);
+        this.driver = BaseDriverFactory.getDriver(config.getBrowser()).createWebDriver(config);
     }
 
     /**

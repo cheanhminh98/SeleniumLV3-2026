@@ -3,6 +3,8 @@ package com.element;
 import com.driver.DriverManager;
 import org.openqa.selenium.*;
 import org.openqa.selenium.interactions.Actions;
+import org.openqa.selenium.support.ui.Select;
+import org.openqa.selenium.support.ui.UnexpectedTagNameException;
 
 import java.time.Duration;
 import java.util.List;
@@ -165,6 +167,18 @@ public class Element {
                                     webElement
                             );
                 }
+        );
+    }
+
+    /**
+     * Selects an option by its visible text.
+     *
+     * @param text visible text of the option to select
+     */
+    public void select(String text) {
+        getRetry().retryAction(
+                () -> new Select(getElement()).selectByVisibleText(text),
+                INTERACTION_RETRY_EXCEPTIONS
         );
     }
 
