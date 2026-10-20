@@ -1,6 +1,8 @@
 package com.driver;
 
-import com.data.BrowserType;
+
+import java.util.Locale;
+import java.util.ServiceLoader;
 
 public class BaseDriverFactory {
 
@@ -10,14 +12,18 @@ public class BaseDriverFactory {
      * @param browserType browser type
      * @return driver
      */
-    public static BaseDriver<?> getDriver(BrowserType browserType) {
-        try {
-            return browserType
-                    .getBaseDriver()
-                    .getDeclaredConstructor()
-                    .newInstance();
-        } catch (ReflectiveOperationException e) {
-            throw new RuntimeException("Cannot create driver for browser: " + browserType, e);
+    public static BaseDriver<?> getDriver(String browserType) {
+        if (browserType == null || browserType.isBlank()) {
+            throw new IllegalArgumentException("Browser cannot be null or empty.");
         }
+        String browserName = browserType.trim().toLowerCase(Locale.ROOT);
+
+        return ServiceLoader.load(BaseDriver.class)
+                .stream().map(ServiceLoader.Provider::get)
+                .filter(driver -> driver.getName() != null
+                        && driver.getName().trim()
+                        .equalsIgnoreCase(browserName))
+                .findFirst().orElseThrow(
+                        () -> new IllegalArgumentException("Unsupported browser: " + browserName));
     }
 }

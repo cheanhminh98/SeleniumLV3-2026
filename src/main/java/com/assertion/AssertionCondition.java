@@ -1,8 +1,5 @@
 package com.assertion;
 
-import java.time.Duration;
-import java.util.Objects;
-
 @FunctionalInterface
 public interface AssertionCondition {
 

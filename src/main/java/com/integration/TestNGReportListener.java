@@ -1,15 +1,16 @@
 package com.integration;
 
 import com.report.ReportManager;
+import io.qameta.allure.listener.TestLifecycleListener;
+import io.qameta.allure.model.Status;
+import io.qameta.allure.model.TestResult;
 import lombok.extern.slf4j.Slf4j;
 import org.testng.IExecutionListener;
-import org.testng.IInvokedMethod;
-import org.testng.IInvokedMethodListener;
 import org.testng.ITestListener;
 import org.testng.ITestResult;
 
 @Slf4j
-public class TestNGReportListener implements ITestListener, IExecutionListener, IInvokedMethodListener {
+public class TestNGReportListener implements ITestListener, IExecutionListener, TestLifecycleListener {
 
     /**
      * Initializes the selected report before test execution begins.
@@ -53,7 +54,6 @@ public class TestNGReportListener implements ITestListener, IExecutionListener, 
         String testName = getTestName(result);
         log.error("{} test is failed.", testName);
         ReportManager.onTestFailure(getFailureMessage(result));
-        if (!ReportManager.isAllureReport()) takeScreenshot(testName);
     }
 
     /**
@@ -107,13 +107,21 @@ public class TestNGReportListener implements ITestListener, IExecutionListener, 
         }
     }
 
+    /**
+     * Attaches a screenshot before a failed test stops.
+     *
+     * @param result TestNG test result
+     */
     @Override
-    public void afterInvocation(IInvokedMethod method, ITestResult testResult) {
-        if (ReportManager.isAllureReport()) {
-            if (testResult.getStatus() == ITestResult.FAILURE) {
-                String testName = getTestName(testResult);
-                takeScreenshot(testName);
-            }
+    public void beforeTestStop(TestResult result) {
+        if (result == null) {
+            return;
         }
+        Status status = result.getStatus();
+        if (status != Status.FAILED) {
+            return;
+        }
+        String testName = result.getName();
+        takeScreenshot(testName);
     }
 }

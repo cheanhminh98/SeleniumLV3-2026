@@ -10,6 +10,13 @@ import java.net.URL;
 public abstract class BaseDriver<T extends MutableCapabilities> {
 
     /**
+     * Gets the browser name used in DriverConfig.
+     *
+     * @return browser name
+     */
+    public abstract String getName();
+
+    /**
      * Get browser options.
      *
      * @param config Driver Config

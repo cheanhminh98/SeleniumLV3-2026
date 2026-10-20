@@ -1,29 +1,28 @@
 package test.base;
 
-import com.assertion.Assertion;
 import com.assertion.HardAssertion;
 import com.assertion.SoftAssertion;
-import com.data.BrowserType;
 import com.driver.DriverConfig;
 import com.driver.DriverManager;
 import com.utilities.DriverConfigLoader;
 import org.openqa.selenium.WebDriver;
 import org.testng.annotations.AfterClass;
-import org.testng.annotations.AfterMethod;
 
 public abstract class TestBase {
 
-    protected DriverConfigLoader driverConfigLoader = new DriverConfigLoader();
+    protected final DriverConfigLoader driverConfigLoader =
+            new DriverConfigLoader();
+
     protected final SoftAssertion softAssert = new SoftAssertion();
     protected final HardAssertion hardAssert = new HardAssertion();
 
     /**
      * Initializes WebDriver for the specified browser.
      *
-     * @param browserType browser type
+     * @param browserName the browser provider name
      */
-    protected void setUp(BrowserType browserType) {
-        DriverConfig driverConfig = driverConfigLoader.getDriverConfig(browserType);
+    protected void setUp(String browserName) {
+        DriverConfig driverConfig = driverConfigLoader.getDriverConfig(browserName);
         DriverManager.initialize(driverConfig);
         DriverManager.open(driverConfig.getBaseUrl());
     }

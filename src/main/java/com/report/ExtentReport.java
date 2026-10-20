@@ -137,12 +137,31 @@ public class ExtentReport implements Report {
         return test;
     }
 
+    /**
+     * Marks the current test as passed.
+     */
     @Override
-    public void onTestSuccess() {}
+    public void onTestSuccess() {
+        getCurrentTest().pass("Test passed.");
+    }
 
+    /**
+     * Marks the current test as failed.
+     *
+     * @param message failure message
+     */
     @Override
-    public void onTestFailure(String message) {}
+    public void onTestFailure(String message) {
+        getCurrentTest().fail(message);
+    }
 
+    /**
+     * Marks the current test as skipped.
+     *
+     * @param message skip message
+     */
     @Override
-    public void onTestSkipped(String message) {;}
+    public void onTestSkipped(String message) {
+        getCurrentTest().skip(message);
+    }
 }

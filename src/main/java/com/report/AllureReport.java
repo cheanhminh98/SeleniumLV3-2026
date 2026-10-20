@@ -2,14 +2,16 @@ package com.report;
 
 import com.driver.DriverManager;
 import io.qameta.allure.Allure;
+import io.qameta.allure.listener.TestLifecycleListener;
 import io.qameta.allure.model.Status;
+import io.qameta.allure.model.TestResult;
 import lombok.extern.slf4j.Slf4j;
 import org.openqa.selenium.OutputType;
 
 import java.io.ByteArrayInputStream;
 
 @Slf4j
-public class AllureReport implements Report {
+public class AllureReport implements Report, TestLifecycleListener {
 
     /**
      * Returns the report name used by the report provider.
@@ -72,22 +74,9 @@ public class AllureReport implements Report {
      *
      * @param name screenshot name
      */
-    @Override
     public void attachScreenshot(String name) {
-        try {
-            byte[] screenshot = DriverManager.getScreenshotAs(OutputType.BYTES);
-            if (screenshot == null || screenshot.length == 0) {
-                log.warn("Screenshot is empty: {}", name);
-                return;
-            }
-            if (!Allure.getLifecycle().getCurrentTestCase().isPresent()) {
-                log.warn("Cannot attach screenshot because no Allure test is active: {}", name);
-                return;
-            }
-            Allure.addAttachment(name, "image/png", new ByteArrayInputStream(screenshot), ".png");
-        } catch (Exception e) {
-            log.error("Unable to attach screenshot to Allure: {}", name, e);
-        }
+        byte[] screenshot = DriverManager.getScreenshotAs(OutputType.BYTES);
+        Allure.addAttachment(name, "image/png", new ByteArrayInputStream(screenshot), ".png");
     }
 
     /**

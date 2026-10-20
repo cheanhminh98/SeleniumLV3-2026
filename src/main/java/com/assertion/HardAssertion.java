@@ -206,4 +206,23 @@ public class HardAssertion {
             throw new AssertionError(Assertion.buildMessage(message, "Expected: <" + expected + ">, but was: <" + actual + ">."));
         }
     }
+
+    /**
+     * Verifies that the supplied actual value eventually equals
+     * the expected value using the default assertion timeout.
+     *
+     * @param actualSupplier supplier that provides the actual value
+     * @param expected       expected value
+     * @param message        custom assertion message
+     * @param <T>            value type
+     * @throws AssertionError when the actual value does not equal
+     *                        the expected value within the timeout
+     */
+    public <T> void assertEquals(Supplier<T> actualSupplier, T expected, String message) {
+        try {
+            AssertRetry.assertEquals(actualSupplier, expected);
+        } catch (AssertionTimeoutException e) {
+            throw new AssertionError(Assertion.buildMessage(message, "Expected: <" + expected + ">.", e), e);
+        }
+    }
 }
