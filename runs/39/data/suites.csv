@@ -1,0 +1,2 @@
+"DESCRIPTION","DURATION IN MS","NAME","PARENT SUITE","START TIME","STATUS","STOP TIME","SUB SUITE","SUITE","TEST CLASS","TEST METHOD"
+"","10914","verifyExampledSoftTest","Report Test Suite","2026-10-20","passed","2026-10-20","test.test.ExampleTestSoftAssert","Report Test","test.test.ExampleTestSoftAssert","verifyExampledSoftTest"
